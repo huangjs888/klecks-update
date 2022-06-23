@@ -1,0 +1,140 @@
+import {IBounds, IVector2D} from '../BB.types';
+
+export function mix (a: number, b: number, f: number): number {
+    return a * (1 - f) + b * f;
+}
+
+export function dist (ax: number, ay: number, bx: number, by: number): number {
+    return Math.sqrt(Math.pow(ax - bx, 2) + Math.pow(ay - by, 2));
+}
+
+export function distSquared (ax: number, ay: number, bx: number, by: number): number {
+    // faster because no square-root
+    return Math.pow(ax - bx, 2) + Math.pow(ay - by, 2);
+}
+
+export function lenSquared (x: number, y: number): number {
+    // faster because no square-root
+    return x * x + y * y;
+}
+
+export function pointsToAngleRad (p1: IVector2D, p2: IVector2D): number {
+    return Math.atan2(p2.y - p1.y, p2.x - p1.x);
+}
+
+export function pointsToAngleDeg (p1: IVector2D, p2: IVector2D): number {
+    return pointsToAngleRad(p1, p2) * 180 / Math.PI;
+}
+
+export function clamp (num: number, min: number, max: number): number {
+    return num <= min
+        ? min
+        : num >= max
+            ? max
+            : num;
+}
+
+export function rotate (x: number, y: number, deg: number): IVector2D {
+    const theta = deg * (Math.PI / 180);
+    const cs = Math.cos(theta);
+    const sn = Math.sin(theta);
+
+    return {
+        x: x * cs - y * sn,
+        y: x * sn + y * cs
+    };
+}
+
+export function rotateAround (center: IVector2D, point: IVector2D, deg: number): IVector2D {
+    const rot = rotate(point.x - center.x, point.y - center.y, deg);
+    rot.x += center.x;
+    rot.y += center.y;
+    return rot;
+}
+
+export function intDxy(remainder: IVector2D, fDx: number, fDy: number) {
+    remainder.x += fDx;
+    remainder.y += fDy;
+    const dX = Math.round(remainder.x);
+    const dY = Math.round(remainder.y);
+    remainder.x -= dX;
+    remainder.y -= dY;
+    return {
+        dX,
+        dY,
+    };
+}
+
+/**
+ * return closest even number
+ * @param f
+ */
+export function roundEven(f: number) {
+    if (f % 1 === 0) {
+        if (f % 2 === 0) {
+            return f;
+        }
+        return f + 1;
+    }
+    const above = Math.ceil(f);
+    const below = Math.floor(f);
+    if (above % 2 === 0) {
+        return above;
+    } else {
+        return below;
+    }
+}
+
+/**
+ * return closest uneven number
+ * @param f
+ */
+export function roundUneven(f: number) {
+    if (f % 1 === 0) {
+        if (f % 2 === 0) {
+            return f + 1;
+        }
+        return f;
+    }
+    const above = Math.ceil(f);
+    const below = Math.floor(f);
+    if (above % 2 === 1) {
+        return above;
+    } else {
+        return below;
+    }
+}
+
+/**
+ * update target so it includes bounds
+ * @param target
+ * @param bounds
+ */
+export function updateBounds (target: IBounds, bounds: IBounds): IBounds {
+    if (!bounds) {
+        return target;
+    }
+    if (!target) {
+        target = { x1: bounds.x1, y1: bounds.y1, x2: bounds.x2, y2: bounds.y2 };
+    } else {
+        target.x1 = Math.min(target.x1, bounds.x1);
+        target.y1 = Math.min(target.y1, bounds.y1);
+        target.x2 = Math.max(target.x2, bounds.x2);
+        target.y2 = Math.max(target.y2, bounds.y2);
+    }
+    return target;
+}
+
+/**
+ * determine overlap of bounds with width&height
+ */
+export function boundsInArea (bounds: IBounds, width: number, height: number): IBounds | null {
+    let x1 = Math.max(0, bounds.x1);
+    let y1 = Math.max(0, bounds.y1);
+    let x2 = Math.min(width - 1, bounds.x2);
+    let y2 = Math.min(height - 1, bounds.y2);
+    if (x1 > x2 || y1 > y2) {
+        return null;
+    }
+    return { x1, y1, x2, y2 };
+}
