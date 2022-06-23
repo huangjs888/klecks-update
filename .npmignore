@@ -2,8 +2,13 @@
 .DS_Store
 .parcel-cache
 .idea
+.gitignore
+.npmignore
 npm-debug.log*
+package-lock.json
 src/app/languages
+klecks-main.zip
 node_modules
-NetBox2.exe
+examples
+docs
 dist

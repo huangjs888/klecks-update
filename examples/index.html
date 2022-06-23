@@ -29,7 +29,7 @@
   <body>
     <div id="klecks-root"></div>
     <!-- embed start -->
-    <script src="/dist/embed.js"></script>
+    <script src="./embed/embed.js"></script>
     <script type="text/javascript">
       /*
     Using Klecks in a drawing community:
@@ -38,7 +38,7 @@
     - on continuing a drawing, read psd that was stored on server (klecks.readPsd -> klecks.openProject)
      */
 
-      const psdURL = 'example-drawing.psd';
+      const psdURL = "./example-drawing.psd";
 
       let saveData = (function () {
         let a = document.createElement("a");
@@ -55,6 +55,7 @@
 
       const klecks = new Klecks({
         container: document.getElementById("klecks-root"),
+        embedUrl: "./embed",
         onSubmit: (onSuccess, onError) => {
           // download png
           saveData(klecks.getPNG(), "drawing.png");
