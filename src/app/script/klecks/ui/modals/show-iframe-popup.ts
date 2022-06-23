@@ -1,9 +1,9 @@
-import {BB} from '../../../bb/bb';
-import {Popup} from './popup';
-import {LANG} from '../../../language/language';
+import { BB } from '../../../bb/bb';
+import { Popup } from './popup';
+import { LANG } from '../../../language/language';
 
-export function showIframePopup(url, isEmbed) {
-    if (!isEmbed && (window.innerHeight < 500 || window.innerWidth < 700)) {
+export function showIframePopup(url, isEmbed, klRootEl, bbox) {
+    if (!isEmbed && ((bbox.height || window.innerHeight) < 500 || (bbox.width || window.innerWidth) < 700)) {
         window.open(url);
         return;
     }
@@ -30,11 +30,11 @@ export function showIframePopup(url, isEmbed) {
                 href: 'help',
                 target: '_blank',
             },
-            onClick: function() {
+            onClick: function () {
                 popup.close();
             }
         }) as HTMLAnchorElement;
-        iframe.onload = function() {
+        iframe.onload = function () {
             BB.setAttributes(linkEl, {
                 href: '' + iframe.contentWindow.location,
             });
@@ -43,6 +43,7 @@ export function showIframePopup(url, isEmbed) {
 
 
     let popup = new Popup({
+        target: klRootEl,
         title: titleEl,
         content: iframe,
         width: 880,

@@ -1,17 +1,17 @@
-import {dialogCounter} from './modal-count';
-import {BB} from '../../../bb/bb';
+import { dialogCounter } from './modal-count';
+import { BB } from '../../../bb/bb';
 // @ts-ignore
 import checkImg from 'url:~/src/app/img/ui/check.svg';
 // @ts-ignore
 import cancelImg from 'url:~/src/app/img/ui/cancel.svg';
-import {LANG} from '../../../language/language';
-import {IKeyString} from '../../../bb/bb.types';
+import { LANG } from '../../../language/language';
+import { IKeyString } from '../../../bb/bb.types';
 
 window.onscroll = (e) => {
     e.preventDefault();
 }
 
-export function popup (
+export function popup(
     p: {
         target: HTMLElement;
         div?: HTMLElement; // node with content
@@ -33,7 +33,7 @@ export function popup (
 
     // need this extra layer because chrome mobile otherwise scrolls the page and then glitches as the address bar goes away
     const rootRootEl = BB.el({
-        parent: document.body,
+        parent: p.target || document.body,
         css: {
             position: 'absolute',
             left: '0',
@@ -107,7 +107,7 @@ export function popup (
         content: [
             xButton,
             BB.el({
-                content:p.message,
+                content: p.message,
                 css: {
                     marginBottom: p.div ? '10px' : null,
                     marginRight: '15px',
@@ -147,13 +147,13 @@ export function popup (
     }
 
     const keyListener = new BB.KeyListener({
-        onDown: function(keyStr, e, comboStr) {
+        onDown: function (keyStr, e, comboStr) {
             if (isClosed) {
                 return;
             }
             if (clickOnEnterBtn && comboStr === 'enter' && !BB.isInputFocused()) {
                 e.stopPropagation();
-                setTimeout(function() {
+                setTimeout(function () {
                     clickOnEnterBtn.click();
                 }, 10);
             }
@@ -245,7 +245,7 @@ export function popup (
         });
     }
 
-    function close (value: string) {
+    function close(value: string) {
         if (isClosed) {
             return;
         }
@@ -277,7 +277,7 @@ export function popup (
                 focusEl.parentNode.removeChild(focusEl);
             }, 10);
         }
-        document.body.removeChild(rootRootEl);
+        rootRootEl.parentNode.removeChild(rootRootEl);
         dialogCounter.decrease();
         BB.destroyEl(xButton);
         BB.destroyEl(bgEl);
@@ -327,14 +327,13 @@ export function popup (
  * @param p
  * @constructor
  */
-export const Popup = function(p) {
+export const Popup = function (p) {
     dialogCounter.increase();
-    const parent = document.body;
+    const parent = p.target || document.body;
     const div = BB.el({
         parent: parent,
-        className: 'g-root',
         css: {
-            position: 'fixed',
+            position: 'absolute',
             left: '0',
             top: '0',
             bottom: '0',
@@ -395,12 +394,13 @@ export const Popup = function(p) {
 
     //x and y position via script. flex not powerful enough imo
     function updatePos() {
+        const width = p.target ? (p.target.clientWidth || p.target.offsetWidth) : window.innerWidth;
+        const height = p.target ? (p.target.clientHeight || p.target.offsetHeight) : window.innerHeight;
         const elW = popupEl.offsetWidth;
         const elH = popupEl.offsetHeight;
-
         BB.css(popupEl, {
-            left: Math.max(0, (window.innerWidth - elW) / 2) + 'px',
-            top: Math.max(20, (window.innerHeight - elH) / 2 - (elH * 0.20)) + 'px'
+            left: Math.max(0, (width - elW) / 2) + 'px',
+            top: Math.max(20, (height - elH) / 2 - (elH * 0.20)) + 'px'
         });
     }
     //todo also update when popup changes size - resizeobserver and fallback
@@ -453,7 +453,7 @@ export const Popup = function(p) {
     }
 
     const keyListener = new BB.KeyListener({
-        onDown: function(keyStr, e) {
+        onDown: function (keyStr, e) {
             if (keyStr === 'esc') {
                 e.stopPropagation();
                 close();
@@ -463,7 +463,7 @@ export const Popup = function(p) {
 
 
     // --- interface ---
-    this.close = function() {
+    this.close = function () {
         close();
     };
 };

@@ -1,10 +1,10 @@
 import './polyfills';
-import {KlApp} from './app/kl-app';
-import {IKlProject} from './klecks/kl.types';
-import {SaveReminder} from './klecks/ui/components/save-reminder';
-import {klHistory} from './klecks/history/kl-history';
-import {klPsdToKlProject, readPsd} from './klecks/storage/psd';
-import {LANG} from './language/language';
+import { KlApp } from './app/kl-app';
+import { IKlProject } from './klecks/kl.types';
+import { SaveReminder } from './klecks/ui/components/save-reminder';
+import { klHistory } from './klecks/history/kl-history';
+import { klPsdToKlProject, readPsd } from './klecks/storage/psd';
+import { LANG } from './language/language';
 
 export interface IEmbedParams {
     project?: IKlProject,
@@ -14,6 +14,7 @@ export interface IEmbedParams {
     logoImg?: any;
     bottomBar?: HTMLElement;
     aboutEl?: HTMLElement;
+    container?: HTMLElement;
 }
 
 export interface IReadPSD {
@@ -45,10 +46,12 @@ export function Embed(p: IEmbedParams) {
                 klHistory,
                 false,
                 false,
-                () => {},
+                () => { },
                 () => klApp ? klApp.isDrawing() : false,
                 null,
                 null,
+                () => klApp ? klApp.getEl() : (p.container || document.body),
+                () => klApp ? klApp.getBBox() : {},
             );
             klApp = new KlApp(
                 project,
@@ -60,7 +63,8 @@ export function Embed(p: IEmbedParams) {
                         url: p.embedUrl,
                         onSubmit: p.onSubmit,
                     }
-                }
+                },
+                p.container || document.body
             );
             saveReminder.init();
 
@@ -70,7 +74,7 @@ export function Embed(p: IEmbedParams) {
             loadingScreenEl = null;
             loadingScreenTextEl = null;
 
-            document.body.appendChild(klApp.getEl());
+            (p.container || document.body).appendChild(klApp.getEl());
         } catch (e) {
             if (loadingScreenTextEl) {
                 loadingScreenTextEl.textContent = '❌ ' + e;

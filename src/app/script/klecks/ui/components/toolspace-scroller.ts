@@ -1,9 +1,9 @@
-import {BB} from '../../../bb/bb';
+import { BB } from '../../../bb/bb';
 // @ts-ignore
 import caretImg from 'url:~/src/app/img/ui/caret-down.svg';
-import {IKeyString} from '../../../bb/bb.types';
-import {LANG} from '../../../language/language';
-import {dialogCounter} from '../modals/modal-count';
+import { IKeyString } from '../../../bb/bb.types';
+import { LANG } from '../../../language/language';
+import { dialogCounter } from '../modals/modal-count';
 
 /**
  * Scroll buttons at the top and bottom of toolspace
@@ -36,10 +36,11 @@ export class ToolspaceScroller {
     }
 
     // --- public ---
-    constructor(p: {toolspace: HTMLElement, uiState: 'left' | 'right'}) {
+    constructor(p: { toolspace: HTMLElement, uiState: 'left' | 'right' }) {
+        debugger
         this.toolspace = p.toolspace;
         this.upBtn = BB.el({
-            parent: this.toolspace,
+            parent: this.toolspace.parentNode,
             title: LANG('scroll'),
             className: 'kl-scroller',
             css: {
@@ -48,7 +49,7 @@ export class ToolspaceScroller {
             }
         });
         this.downBtn = BB.el({
-            parent: this.toolspace,
+            parent: this.toolspace.parentNode,
             title: LANG('scroll'),
             className: 'kl-scroller',
             css: {
@@ -122,7 +123,7 @@ export class ToolspaceScroller {
         });
     }
 
-    updateUiState (uiState: 'left' | 'right'): void {
+    updateUiState(uiState: 'left' | 'right'): void {
         BB.css(this.upBtn, {
             left: uiState === 'left' ? '0' : null,
             right: uiState === 'right' ? '0' : null,

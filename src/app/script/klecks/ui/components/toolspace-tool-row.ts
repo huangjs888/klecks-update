@@ -437,6 +437,7 @@ export function ToolspaceToolRow(p) {
     div.appendChild(brushButton);*/
 
     let toolDropdown = new ToolDropdown({
+        klRootEl: p.klRootEl,
         onChange: function(activeStr) {
             setActive(activeStr, true);
         }

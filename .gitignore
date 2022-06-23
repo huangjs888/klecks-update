@@ -1,6 +1,9 @@
-node_modules
+.cache
+.DS_Store
 .parcel-cache
-dist
 .idea
+npm-debug.log*
 src/app/languages
+node_modules
 NetBox2.exe
+dist

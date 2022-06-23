@@ -1,6 +1,6 @@
-import {KlHistoryInterface} from './history/kl-history';
-import {KlCanvas} from './canvas/kl-canvas';
-import {TTranslationCode} from '../../languages/languages';
+import { KlHistoryInterface } from './history/kl-history';
+import { KlCanvas } from './canvas/kl-canvas';
+import { TTranslationCode } from '../../languages/languages';
 
 export interface IFilterApply {
     context: CanvasRenderingContext2D;
@@ -9,17 +9,23 @@ export interface IFilterApply {
     history: KlHistoryInterface;
 }
 
+export interface BBox {
+    width: number;
+    height: number;
+}
+
 export interface IFilterGetDialogParam {
     context: CanvasRenderingContext2D;
     canvas: KlCanvas;
     maxWidth: number;
     maxHeight: number;
+    bbox: BBox;
     currentColorRgb: IRGB;
     secondaryColorRgb: IRGB;
 }
 
 export interface IFilter {
-    lang: {name: TTranslationCode; button: TTranslationCode};
+    lang: { name: TTranslationCode; button: TTranslationCode };
     name: string;
     buttonLabel?: string;
     neededWithWebGL?: boolean;
@@ -163,10 +169,10 @@ export interface IKlPsd {
     width: number;
     height: number;
     layers?: { // not there if flattened
-            name: string;
-            mixModeStr: IMixMode;
-            opacity: number;
-            image: HTMLCanvasElement;
+        name: string;
+        mixModeStr: IMixMode;
+        opacity: number;
+        image: HTMLCanvasElement;
     }[];
     // if one of these features show up, they become a warning
     // because Klecks can't properly represent them (yet)

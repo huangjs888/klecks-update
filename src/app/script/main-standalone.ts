@@ -3,22 +3,27 @@
  */
 
 import './polyfills';
-import {BB} from './bb/bb';
-import {KL} from './klecks/kl';
-import {klHistory} from './klecks/history/kl-history';
-import {KlApp} from './app/kl-app';
-import {IKlProject} from './klecks/kl.types';
-import {ProjectStore} from './klecks/storage/project-store';
-import {initLANG, LANG} from './language/language';
+import { BB } from './bb/bb';
+import { KL } from './klecks/kl';
+import { klHistory } from './klecks/history/kl-history';
+import { KlApp } from './app/kl-app';
+import { IKlProject } from './klecks/kl.types';
+import { ProjectStore } from './klecks/storage/project-store';
+import { initLANG, LANG } from './language/language';
 
 function initError(e) {
+    let container = document.body;
+    try {
+        // in case an extension screwed with the page
+        container = document.getElementById("loading-screen").parentNode;
+    } catch (e) { }
     let el = document.createElement('div');
     el.style.textAlign = 'center';
     el.style.background = '#fff';
     el.style.padding = '20px';
     el.innerHTML = '<h1>App failed to initialize</h1>';
     el.innerHTML += 'Error: ' + (e.message ? e.message : ('' + e));
-    document.body.append(el);
+    container.append(el);
     console.error(e);
 }
 
@@ -40,29 +45,32 @@ function initError(e) {
         if (klApp) {
             throw 'onKlProjectObjLoaded called more than once';
         }
+        let container = document.body;
         let loadingScreenEl = document.getElementById("loading-screen");
         try {
             // in case an extension screwed with the page
-            loadingScreenEl.parentNode.removeChild(loadingScreenEl);
-        } catch(e) {}
+            container = loadingScreenEl.parentNode;
+            container.removeChild(loadingScreenEl);
+        } catch (e) { }
 
         const saveReminder = new KL.SaveReminder(
             klHistory,
             true,
             true,
             () => klApp.saveAsPsd(),
-            () => {
-                return klApp ? klApp.isDrawing() : false;
-            },
+            () => klApp ? klApp.isDrawing() : false,
             null,
             null,
+            () => klApp ? klApp.getEl() : container,
+            () => klApp ? klApp.getBBox() : {},
         );
         klApp = new KlApp(
             project,
             {
                 saveReminder,
                 projectStore,
-            }
+            },
+            container
         );
         saveReminder.init();
         if (project) {
@@ -71,7 +79,7 @@ function initError(e) {
             }, 100);
         }
 
-        document.body.appendChild(klApp.getEl());
+        container.appendChild(klApp.getEl());
     }
 
     async function onDomLoaded() {
@@ -84,7 +92,7 @@ function initError(e) {
                 if (readResult) {
                     project = readResult.project;
                 }
-            } catch(e) {
+            } catch (e) {
                 let message;
                 if (e.message.indexOf('db-error') === 0) {
                     message = 'Failed to access Browser Storage';
@@ -94,7 +102,7 @@ function initError(e) {
                     message = 'Failed to restore from Browser Storage';
                 }
                 if (message) {
-                    setTimeout(function() {
+                    setTimeout(function () {
                         klApp && klApp.out(message);
                         throw new Error('Initial browser storage error, ' + e);
                     }, 100);

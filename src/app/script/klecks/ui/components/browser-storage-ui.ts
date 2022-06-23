@@ -1,13 +1,13 @@
-import {BB} from '../../../bb/bb';
+import { BB } from '../../../bb/bb';
 
 // @ts-ignore
 import removeLayerImg from 'url:~/src/app/img/ui/remove-layer.svg';
-import {IKlProject} from '../../kl.types';
-import {showIframePopup} from '../modals/show-iframe-popup';
-import {SaveReminder} from './save-reminder';
-import {IProjectStoreListener, ProjectStore} from '../../storage/project-store';
-import {KL} from '../../kl';
-import {LANG} from '../../../language/language';
+import { BBox, IKlProject } from '../../kl.types';
+import { showIframePopup } from '../modals/show-iframe-popup';
+import { SaveReminder } from './save-reminder';
+import { IProjectStoreListener, ProjectStore } from '../../storage/project-store';
+import { KL } from '../../kl';
+import { LANG } from '../../../language/language';
 
 export class BrowserStorageUi {
 
@@ -126,11 +126,12 @@ export class BrowserStorageUi {
 
     element: HTMLDivElement;
 
-    constructor (
+    constructor(
         private projectStore: ProjectStore,
         private getProject: () => IKlProject,
         private saveReminder: SaveReminder,
-        private klRootEl: HTMLDivElement,
+        private klRootEl: HTMLElement,
+        private getBBox: () => BBox,
         private options?: { hideClearButton?: boolean },
     ) {
         this.element = BB.el({
@@ -171,7 +172,7 @@ export class BrowserStorageUi {
                 boxShadow: 'inset 0 0 0 1px #000',
             },
             onClick: () => {
-                showIframePopup('./help/#help-browser-storage', false);
+                showIframePopup('./help/#help-browser-storage', false, this.klRootEl, this.getBBox());
             }
         }) as HTMLDivElement;
 
@@ -279,11 +280,11 @@ export class BrowserStorageUi {
         return this.element;
     }
 
-    show () {
+    show() {
         // todo
     }
 
-    hide () {
+    hide() {
         // todo
     }
 

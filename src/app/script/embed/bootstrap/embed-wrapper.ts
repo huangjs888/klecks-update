@@ -1,9 +1,9 @@
-import {IEmbedParams, IReadPSD} from '../../main-embed';
-import {IKlProject} from '../../klecks/kl.types';
+import { IEmbedParams, IReadPSD } from '../../main-embed';
+import { IKlProject } from '../../klecks/kl.types';
 // @ts-ignore
 import logoImg from 'url:~/src/app/img/klecks-logo.png';
-import {getEmbedUrl} from './get-embed-url';
-import {initLANG, LANG} from '../../language/language';
+import { getEmbedUrl } from './get-embed-url';
+import { initLANG, LANG } from '../../language/language';
 
 let wrapperInstance: boolean = false;
 
@@ -30,21 +30,17 @@ export function EmbedWrapper(p: IEmbedParams) {
         // loading screen
         let loadingScreen = document.createElement('div');
         const loadingStyleArr = [
-            ['position', 'fixed'],
+            ['position', 'absolute'],
             ['left', '0'],
             ['top', '0'],
-            ['width', '100vw'],
-            ['height', '100vh'],
-
+            ['width', '100%'],
+            ['height', '100%'],
             ['display', 'flex'],
             ['alignItems', 'center'],
             ['justifyContent', 'center'],
             ['flexDirection', 'column'],
-
             ['background', 'rgb(158,158,158)'],
-
-            ['fontFamily', 'Arial, sans-serif'],
-            ['fontSize', '30px'],
+            ['fontSize', '24px'],
             ['color', '#e3e3e3'],
         ];
         for (let i = 0; i < loadingStyleArr.length; i++) {
@@ -56,7 +52,7 @@ export function EmbedWrapper(p: IEmbedParams) {
             '<div class="spinner"></div>\n' +
             '<span id="loading-screen-text">' + LANG('embed-init-loading') + '</span>' +
             '</div>';
-        document.body.appendChild(loadingScreen);
+        (p.container || document.body).appendChild(loadingScreen);
 
         const mainEmbed = await import('../../main-embed');
         instance = new mainEmbed.Embed(p);

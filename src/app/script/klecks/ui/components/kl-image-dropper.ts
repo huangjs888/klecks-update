@@ -14,7 +14,7 @@ export function KlImageDropper(p) {
         content: 'Drop to import',
         css: {
             paddingTop: '100px',
-            position: 'fixed',
+            position: 'absolute',
             left: '0',
             top: '0',
             width: '100%',

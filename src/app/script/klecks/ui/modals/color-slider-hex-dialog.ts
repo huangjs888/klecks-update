@@ -143,7 +143,7 @@ export const HexColorDialog = function (p) {
 
 
     popup({
-        target: document.body,
+        target: p.klRootEl,
         message: `<b>${LANG('manual-color-input')}</b>`,
         div: div,
         autoFocus: false,

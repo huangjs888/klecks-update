@@ -861,7 +861,7 @@ iframe {
 }
 
 .kl-scroller {
-    position: fixed;
+    position: absolute;
     cursor: pointer;
     background-color: rgba(155, 155, 155, 0.9);
     filter: invert(1);
