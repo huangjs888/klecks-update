@@ -1,17 +1,18 @@
-import {BB} from '../../bb/bb';
-import {KL} from '../kl';
-import {saveAs} from 'file-saver';
-import {KlCanvas} from '../canvas/kl-canvas';
+import { BB } from '../../bb/bb';
+import { KL } from '../kl';
+import { saveAs } from 'file-saver';
+import { KlCanvas } from '../canvas/kl-canvas';
 
 export class SaveToComputer {
 
     constructor(
+        private customSave,
         private saveReminder,
         private klRootEl,
         private getExportType,
         private getKlCanvas: () => KlCanvas,
         private filenameBase: string,
-    ) {}
+    ) { }
 
     save(format?: 'psd' | 'layers' | 'png') {
         const _this = this;
@@ -29,8 +30,12 @@ export class SaveToComputer {
             for (let i = 0; i < view.length; i++) {
                 view[i] = binStr.charCodeAt(i);
             }
-            let blob = new Blob([view], {'type': parts[1]});
-            saveAs(blob, filename);
+            let blob = new Blob([view], { 'type': parts[1] });
+            if (typeof _this.customSave === 'function') {
+                _this.customSave(blob, filename);
+            } else {
+                saveAs(blob, filename);
+            }
         }
 
         if (!format) {
@@ -104,7 +109,11 @@ export class SaveToComputer {
             KL.loadAgPsd().then((agPsdLazy) => {
                 let buffer = agPsdLazy.writePsdBuffer(psdConfig);
                 let blob = new Blob([buffer], { type: 'application/octet-stream' });
-                saveAs(blob, BB.getDate() + this.filenameBase + '.psd');
+                if (typeof _this.customSave === 'function') {
+                    _this.customSave(blob, BB.getDate() + this.filenameBase + '.psd');
+                } else {
+                    saveAs(blob, BB.getDate() + this.filenameBase + '.psd');
+                }
             }).catch(() => {
                 alert('Error: failed to load PSD library');
             });

@@ -18,7 +18,7 @@ export class BrowserStorageUi {
     private clearEl: HTMLButtonElement;
     private storeListener: IProjectStoreListener;
 
-    private timestamp: number;
+    private timestamp: number | undefined;
 
     private updateAge() {
         if (!this.timestamp) {
@@ -76,32 +76,35 @@ export class BrowserStorageUi {
     }
 
     private async store() {
-        this.storeEl.textContent = LANG('file-storage-storing');
-        this.storeEl.disabled = true;
-        this.clearEl.disabled = true;
-        await new Promise((resolve) => {
-            setTimeout(() => resolve(null), 20);
-        });
-        try {
-            await this.projectStore.store(this.getProject());
-            this.saveReminder.reset();
-        } catch (e) {
-            this.resetButtons();
-            KL.popup({
-                target: this.klRootEl,
-                type: 'error',
-                message: [
-                    `${LANG('file-storage-failed-1')}<ul>`,
-                    `<li>${LANG('file-storage-failed-2')}</li>`,
-                    `<li>${LANG('file-storage-failed-3')}</li>`,
-                    `<li>${LANG('file-storage-failed-4')}</li>`,
-                    `</ul>`,
-                ].join(''),
-                buttons: ['Ok'],
+        const p = this.getProject();
+        if (p) {
+            this.storeEl.textContent = LANG('file-storage-storing');
+            this.storeEl.disabled = true;
+            this.clearEl.disabled = true;
+            await new Promise((resolve) => {
+                setTimeout(() => resolve(null), 20);
             });
-            setTimeout(() => {
-                throw new Error('storage-ui: failed to store browser storage, ' + e);
-            }, 0);
+            try {
+                await this.projectStore.store(p);
+                this.saveReminder.reset();
+            } catch (e) {
+                this.resetButtons();
+                KL.popup({
+                    target: this.saveReminder.getEl(),
+                    type: 'error',
+                    message: [
+                        `${LANG('file-storage-failed-1')}<ul>`,
+                        `<li>${LANG('file-storage-failed-2')}</li>`,
+                        `<li>${LANG('file-storage-failed-3')}</li>`,
+                        `<li>${LANG('file-storage-failed-4')}</li>`,
+                        `</ul>`,
+                    ].join(''),
+                    buttons: ['Ok'],
+                });
+                setTimeout(() => {
+                    throw new Error('storage-ui: failed to store browser storage, ' + e);
+                }, 0);
+            }
         }
     }
 
@@ -113,7 +116,7 @@ export class BrowserStorageUi {
         } catch (e) {
             this.resetButtons();
             KL.popup({
-                target: this.klRootEl,
+                target: this.saveReminder.getEl(),
                 type: 'error',
                 message: LANG('file-storage-failed-clear'),
                 buttons: ['Ok'],
@@ -128,10 +131,8 @@ export class BrowserStorageUi {
 
     constructor(
         private projectStore: ProjectStore,
-        private getProject: () => IKlProject,
+        private getProject: () => IKlProject | null,
         private saveReminder: SaveReminder,
-        private klRootEl: HTMLElement,
-        private getBBox: () => BBox,
         private options?: { hideClearButton?: boolean },
     ) {
         this.element = BB.el({
@@ -172,7 +173,7 @@ export class BrowserStorageUi {
                 boxShadow: 'inset 0 0 0 1px #000',
             },
             onClick: () => {
-                showIframePopup('./help/#help-browser-storage', false, this.klRootEl, this.getBBox());
+                showIframePopup('./help/#help-browser-storage', false, saveReminder.getEl(), saveReminder.getBBox());
             }
         }) as HTMLDivElement;
 

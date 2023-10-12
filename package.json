@@ -13,7 +13,7 @@
     "serve": "parcel serve src/index.html --no-cache",
     "build": "parcel build src/index.html",
     "build:docs": "parcel build src/index.html --dist-dir docs --no-source-maps --public-url .",
-    "build:embed": "parcel build src/embed.ts --dist-dir examples/embed --no-source-maps",
+    "build:embed": "parcel build src/embed.ts --dist-dir examples/embed",
     "build:help": "npm run build:help-dist && npm run build:help-docs && npm run build:help-embed",
     "build:help-dist": "parcel build src/help.html --dist-dir dist --public-url .",
     "build:help-docs": "parcel build src/help.html --dist-dir docs --public-url .",

@@ -23,7 +23,7 @@ export class SaveReminder {
     private closeFunc: () => void;
 
     showPopup(): void {
-        if (!this.projectStore || !this.getProject) {
+        if (!this.projectStore || !this.getProject || !this.getProject()) {
             throw new Error('projectStore and getProject need to be set');
         }
 
@@ -85,8 +85,6 @@ export class SaveReminder {
             this.projectStore,
             this.getProject,
             this,
-            this.getEl(),
-            this.getBBox,
             {
                 hideClearButton: true,
             }
@@ -121,9 +119,9 @@ export class SaveReminder {
         private onSaveAsPsd: () => void,
         private isDrawing: () => boolean,
         private projectStore: ProjectStore | null, // needed if showReminder
-        private getProject: (() => IKlProject) | null, // needed if showReminder
-        private getEl: () => HTMLElement,
-        private getBBox: () => BBox,
+        private getProject: (() => IKlProject | null) | null, // needed if showReminder
+        public getEl: () => HTMLElement,
+        public getBBox: () => BBox,
         private title: string = 'Klecks',
     ) { }
 

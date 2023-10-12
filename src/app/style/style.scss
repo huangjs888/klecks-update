@@ -34,11 +34,11 @@
     }
 }
 
-body {
+/* body {
     overflow: hidden;
     font-size: 16px;
     overscroll-behavior-x: none; // prevent back gesture in Chrome
-}
+} */
 
 body, html {
     -webkit-tap-highlight-color: rgba(0,0,0,0);
@@ -55,7 +55,7 @@ body, html {
     font-family: Arial, sans-serif;
 }
 
-a:link, a:not([href]) {
+/* a:link, a:not([href]) {
     color: var(--kl-color);
     text-decoration: underline;
     cursor: pointer;
@@ -68,7 +68,7 @@ a:visited {
 a:hover, a:not([href]):hover {
     color: #000;
     text-decoration: underline;
-}
+} */
 
 .gridHr {
     border-top: 1px solid rgba(0, 0, 0, 0.15);
@@ -415,6 +415,7 @@ button img {
     padding: 20px;
     margin: 10px 0;
     box-shadow: rgba(0, 0, 0, 0.45) 0 5px 60px;
+    box-sizing: content-box;
 }
 
 .kl-popup-box--sm {
@@ -569,6 +570,7 @@ textarea, input {
     background: #fff;
     padding: 5px;
     font-size: 0.95em;
+    line-height: normal;
 }
 
 textarea:focus, input:focus {

@@ -34,6 +34,10 @@ import toolTextImg from 'url:~/src/app/img/ui/tool-text.svg';
 // @ts-ignore
 import toolShapeImg from 'url:~/src/app/img/ui/tool-shape.svg';
 // @ts-ignore
+import tabEditImg from 'url:~/src/app/img/ui/tab-edit.svg';
+// @ts-ignore
+import tabFileImg from 'url:~/src/app/img/ui/tab-file.svg';
+// @ts-ignore
 import tabSettingsImg from 'url:~/src/app/img/ui/tab-settings.svg';
 // @ts-ignore
 import tabLayersImg from 'url:~/src/app/img/ui/tab-layers.svg';
@@ -42,8 +46,13 @@ import { LocalStorage } from '../bb/base/local-storage';
 
 interface IKlAppOptions {
     saveReminder?: SaveReminder;
-    projectStore?: ProjectStore;
+    projectStore?: ProjectStore | null;
     logoImg?: any; // app logo
+    onLogo?: () => void;
+    customSave?: (blob: Blob, filename: string, onSuccess: () => void, onError: () => void) => void;
+    hideFile?: boolean;
+    isShare?: boolean;
+    helpPath?: string;
     bottomBar?: HTMLElement; // row at bottom of toolspace
     embed?: {
         url: string;
@@ -59,6 +68,14 @@ interface IKlAppOptions {
 importFilters();
 
 export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, container?: HTMLElement) {
+    function resetCanvas(param) {
+        klCanvas.reset(param);
+        layerManager.update(0);
+        setCurrentLayer(klCanvas.getLayer(0));
+        klCanvasWorkspace.resetView();
+        handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
+        isFirstImage = false;
+    }
     const getBBox = () => {
         const width = container ? (container.clientWidth || container.offsetWidth) : window.innerWidth;
         const height = container ? (container.clientHeight || container.offsetHeight) : window.innerHeight;
@@ -72,14 +89,14 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
     let klMaxCanvasSize = Math.min(4096, Math.max(2048, Math.max(window.screen.width, window.screen.height)));
     let collapseThreshold = 820;
     let uiState: 'left' | 'right' = (pOptions.embed ? 'left' : (LocalStorage.getItem('uiState') ? LocalStorage.getItem('uiState') : 'right')) as any;
-    const filenameBase = pOptions.app?.filenameBase ? pOptions.app.filenameBase : 'Klecks';
+    const filenameBase = pOptions.app?.filenameBase ? pOptions.app.filenameBase : 'image';
     const projectStore = pOptions.projectStore;
     let klRootEl = document.createElement("div");
     klRootEl.className = 'g-root';
     const bbox = getBBox();
     let uiWidth: number = Math.max(0, bbox.width);
     let uiHeight: number = Math.max(0, bbox.height);
-    const toolWidth = 271;
+    const toolWidth = 270;
     let exportType: exportType = 'png';
     let klCanvas: KlCanvas = new KL.KlCanvas(
         pProject ? {
@@ -89,7 +106,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
             height: Math.max(10, Math.min(klMaxCanvasSize, uiHeight)),
         }, pOptions.embed ? -1 : 0);
     klCanvas.setHistory(klHistory);
-    let initState: IInitState = null;
+    let initState: IInitState | null = null;
     let mainTabRow;
 
     if (!pOptions.saveReminder) {
@@ -390,19 +407,22 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
                     event.preventDefault();
 
                     (async () => {
-                        let success = true;
-                        try {
-                            await projectStore.store(klCanvas.getProject());
-                        } catch (e) {
-                            success = false;
-                            setTimeout(() => {
-                                throw new Error('keyboard-shortcut: failed to store browser storage, ' + e);
-                            }, 0);
-                            statusOverlay.out('❌ ' + LANG('file-storage-failed'), true);
-                        }
-                        if (success) {
-                            pOptions.saveReminder.reset();
-                            statusOverlay.out(LANG('file-storage-stored'), true);
+                        if (projectStore) {
+                            let success = true;
+                            try {
+                                await projectStore.store(klCanvas.getProject());
+                            } catch (e) {
+                                success = false;
+                                setTimeout(() => {
+                                    throw new Error('keyboard-shortcut: failed to store browser storage, ' + e);
+                                }, 0);
+                                statusOverlay.out('❌ ' + LANG('file-storage-failed'), true);
+                            }
+                            if (success) {
+                                pOptions.saveReminder.reset();
+                                statusOverlay.out(LANG('file-storage-stored'), true);
+                            }
+
                         }
                     })();
                 }
@@ -570,19 +590,12 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
 
             BB.resizeCanvas(tempCanvas, resizedDimensions.width, resizedDimensions.height);
 
-            klCanvas.reset({
+            resetCanvas({
                 width: resizedDimensions.width,
                 height: resizedDimensions.height,
                 image: tempCanvas,
                 layerName: filename
             });
-
-            layerManager.update(0);
-            setCurrentLayer(klCanvas.getLayer(0));
-            klCanvasWorkspace.resetView();
-            handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
-
-            isFirstImage = false;
         }
 
         /**
@@ -1218,24 +1231,22 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
     } else {
         toolspaceTopRow = new KL.ToolspaceTopRow({
             logoImg: pOptions.logoImg,
-            onLogo: function () {
-                // showIframePopup('./home/', !!pOptions.embed, klRootEl, getBBox());
-            },
+            onLogo: pOptions.onLogo,
             onNew: function () {
                 showNewImageDialog();
             },
             onImport: function () {
-                fileTab.triggerImport();
+                fileTab && fileTab.triggerImport();
             },
             onSave: function () {
                 saveToComputer.save();
             },
-            onShare: function () {
+            onShare: pOptions.isShare ? function () {
                 shareImage();
-            },
-            onHelp: function () {
-                showIframePopup('./help.html', !!pOptions.embed, klRootEl, getBBox());
-            },
+            } : null,
+            onHelp: pOptions.helpPath ? function () {
+                showIframePopup(pOptions.helpPath + '/help.html', !!pOptions.embed, klRootEl, getBBox());
+            } : null,
         });
     }
     BB.addClassName(toolspaceTopRow.getElement(), 'toolspace-row-shadow');
@@ -1552,18 +1563,11 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
             workspaceWidth: getBBox().width < collapseThreshold ? uiWidth : uiWidth - toolWidth,
             workspaceHeight: uiHeight,
             onConfirm: function (width, height, color) {
-                klCanvas.reset({
+                resetCanvas({
                     width: width,
                     height: height,
                     color: color.a === 1 ? color : null
                 });
-
-                layerManager.update(0);
-                setCurrentLayer(klCanvas.getLayer(0));
-                klCanvasWorkspace.resetView();
-                handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
-
-                isFirstImage = false;
             },
             onCancel: function () { }
         });
@@ -1579,6 +1583,32 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
     }
 
     const saveToComputer = new KL.SaveToComputer(
+        typeof pOptions.customSave === 'function' ? (blob, flename) => {
+            KL.popup({
+                target: klRootEl,
+                message: LANG('submit-prompt'),
+                buttons: [LANG('submit'), 'Cancel'],
+                callback: async (result) => {
+                    if (result !== LANG('submit')) {
+                        return;
+                    }
+
+                    let overlay = BB.el({
+                        parent: klRootEl,
+                        className: 'upload-overlay',
+                        content: '<div class="spinner"></div> ' + LANG('submit-submitting'),
+                    });
+                    pOptions.customSave(blob, flename,
+                        () => {
+                            pOptions.saveReminder.reset();
+                            klRootEl.removeChild(overlay);
+                        },
+                        () => {
+                            klRootEl.removeChild(overlay);
+                        });
+                }
+            });
+        } : null,
         pOptions.saveReminder,
         klRootEl,
         () => exportType,
@@ -1599,7 +1629,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
             saveToComputer.save();
         },
         showNewImageDialog,
-        shareImage,
+        pOptions.isShare ? shareImage : null,
         () => { // on upload
             KL.imgurUpload(klCanvas, klRootEl, pOptions.saveReminder, pOptions.app && pOptions.app.imgurKey ? pOptions.app.imgurKey : null,);
         },
@@ -1723,7 +1753,8 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
             },
             {
                 id: 'edit',
-                label: LANG('tab-edit'),
+                title: LANG('tab-edit'),
+                image: tabEditImg,
                 onOpen: function () {
                     filterTab.show();
                 },
@@ -1731,13 +1762,14 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
                     filterTab.hide();
                 },
                 css: {
-                    padding: '0 7px',
+                    minWidth: '45px',
                 },
             },
             {
                 id: 'file',
-                label: LANG('tab-file'),
-                isVisible: !!fileTab,
+                title: LANG('tab-file'),
+                image: tabFileImg,
+                isVisible: !pOptions.hideFile && !!fileTab,
                 onOpen: function () {
                     if (!fileTab) {
                         return;
@@ -1753,7 +1785,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
                     fileTab.setIsVisible(false);
                 },
                 css: {
-                    padding: '0 7px',
+                    minWidth: '45px',
                 },
             },
             {
@@ -1884,6 +1916,30 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, cont
     });
 
     // --- interface ---
+
+    this.importImage = (image: { name?: string; content?: Blob; width?: number; height?: number; color?: string; }) => {
+        if (!image.content) {
+            resetCanvas({
+                width: image.width || klCanvas.getWidth(),
+                height: image.height || klCanvas.getHeight(),
+                color: image.color || { r: 255, g: 255, b: 255, a: 1 },
+                layerName: image.name
+            });
+        } else {
+            window.URL = window.URL || window.webkitURL;
+            let url = window.URL.createObjectURL(image.content);
+            let im = new Image();
+            im.src = url;
+            BB.loadImage(im, function () {
+                importFinishedLoading({
+                    type: 'image',
+                    width: im.width,
+                    height: im.height,
+                    canvas: im
+                }, image.name || '', 'image');
+            });
+        }
+    };
 
     this.getBBox = getBBox;
 

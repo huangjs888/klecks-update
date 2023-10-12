@@ -37,7 +37,6 @@ export class ToolspaceScroller {
 
     // --- public ---
     constructor(p: { toolspace: HTMLElement, uiState: 'left' | 'right' }) {
-        debugger
         this.toolspace = p.toolspace;
         this.upBtn = BB.el({
             parent: this.toolspace.parentNode,

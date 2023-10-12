@@ -1,4 +1,4 @@
-import {BB} from '../../../bb/bb';
+import { BB } from '../../../bb/bb';
 // @ts-ignore
 import klecksLogoImg from 'url:~/src/app/img/klecks-logo.png';
 // @ts-ignore
@@ -11,7 +11,7 @@ import exportImg from 'url:~/src/app/img/ui/export.svg';
 import shareImg from 'url:~/src/app/img/ui/share.svg';
 // @ts-ignore
 import helpImg from 'url:~/src/app/img/ui/help.svg';
-import {LANG} from '../../../language/language';
+import { LANG } from '../../../language/language';
 
 
 /**
@@ -63,7 +63,7 @@ export function ToolspaceTopRow(p) {
         result.appendChild(im);
         (result as any).pointerListener = new BB.PointerListener({ // because :hover causes problems w touch
             target: result,
-            onEnterLeave: function(isOver) {
+            onEnterLeave: function (isOver) {
                 if (isOver) {
                     BB.addClassName(result, 'toolspace-row-button-hover');
                 } else {
@@ -73,15 +73,18 @@ export function ToolspaceTopRow(p) {
         });
         return result;
     }
+    let logoButton = null;
+    if (typeof p.onLogo === 'function') {
+        logoButton = createButton({
+            onClick: p.onLogo,
+            title: LANG('home'),
+            image: p.logoImg ? p.logoImg : klecksLogoImg,
+            contain: true
+        });
+        logoButton.style.width = '45px';
+        logoButton.style.borderRight = '1px solid rgb(212, 212, 212)';
+    }
 
-    let logoButton = createButton({
-        onClick: p.onLogo,
-        title: LANG('home'),
-        image: p.logoImg ? p.logoImg : klecksLogoImg,
-        contain: true
-    });
-    logoButton.style.width = '45px';
-    logoButton.style.borderRight = '1px solid rgb(212, 212, 212)';
     let newButton = createButton({
         onClick: p.onNew,
         title: LANG('file-new'),
@@ -104,8 +107,10 @@ export function ToolspaceTopRow(p) {
         contain: true
     });
 
+
+
     let shareButton = null;
-    if (BB.canShareFiles()) {
+    if (BB.canShareFiles() && p.onShare) {
         shareButton = createButton({
             onClick: p.onShare,
             title: LANG('file-share'),
@@ -113,25 +118,33 @@ export function ToolspaceTopRow(p) {
             contain: true
         });
     }
-    let helpButton = createButton({
-        onClick: p.onHelp,
-        title: LANG('help'),
-        image: helpImg,
-        contain: true
-    });
+    let helpButton = null;
+    if (p.onHelp) {
+        helpButton = createButton({
+            onClick: p.onHelp,
+            title: LANG('help'),
+            image: helpImg,
+            contain: true
+        });
 
-    div.appendChild(logoButton);
+    }
+
+    if (logoButton) {
+        div.appendChild(logoButton);
+    }
     div.appendChild(newButton);
     div.appendChild(importButton);
     div.appendChild(saveButton);
     if (shareButton) {
         div.appendChild(shareButton);
     }
-    div.appendChild(helpButton);
+    if (helpButton) {
+        div.appendChild(helpButton);
+    }
 
 
     // --- interface ---
-    this.getElement = function() {
+    this.getElement = function () {
         return div;
     }
 }

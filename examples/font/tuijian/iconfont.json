@@ -1,0 +1,23 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "22526234",
+      "name": "see_02",
+      "font_class": "see_02",
+      "unicode": "e654",
+      "unicode_decimal": 58964
+    },
+    {
+      "icon_id": "22526235",
+      "name": "tuijian_01",
+      "font_class": "tuijian_01",
+      "unicode": "e655",
+      "unicode_decimal": 58965
+    }
+  ]
+}

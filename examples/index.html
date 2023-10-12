@@ -1,116 +1,772 @@
 <!DOCTYPE html>
-<!-- mocked drawing page -->
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Draw</title>
-    <!-- this is important -->
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1"
-    />
-    <style>
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        font-family: Arial, sans-serif;
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>編輯社區資料</title>
+  <!-- Bootstrap -->
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/bootstrap-theme.min.css" rel="stylesheet">
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.8/summernote.css" rel="stylesheet">
+  <!-- owl-carousel-->
+  <!--    css-->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/swiper.min.css">
+  <script src="js/jquery-1.11.3.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+</head>
+<style>
+  select{background: url(images/jt.png) 100% / 12px no-repeat;-webkit-appearance: none;-moz-appearance: none;appearance: none;}
+   </style>
+<script>
+$(function() {
+  $(".select_box").click(function(event) {
+    event.stopPropagation();
+    $(this).find(".option").toggle();
+    $(this).parent().siblings().find(".option").hide();
+  });
+  $(document).click(function(event) {
+    var eo = $(event.target);
+    if ($(".select_box").is(":visible") && eo.attr("class") != "option" && !eo.parent(".option").length)
+      $('.option').hide();
+  });
+  $(".option li").click(function() {
+    var check_value = $(this).text();
+    var zlValue = $('.option li:eq(1)').html();
+    var bqValue = $('.option li:eq(2)').html();
+    $(this).parent().siblings(".select_txt").text(check_value);
+    $("#select_value").val(check_value);
+
+  });
+})
+</script>
+<div class="zhid_top">
+
+  <body class="bgtg">
+    <div class="head">
+      <div class="container">
+        <div class="col-sm-12 col-xs-12 col-md-12">
+          <img src="images/sz_03.png" class="logo">
+          <div class="head_font">
+            <ul class="rlist">
+              <a href="">物件查詢</a>
+              <a href="">社區查詢</a>
+              <a href="">瀏覽資料</a>
+              <a href="">社區討論</a>
+            </ul>
+            <div class="right">
+              <div class="layright" style="position: relative">
+                <div class="btn-pop">谢小花<img src="images/zsicon.png" class="icd"></div>
+                <div class="pop">
+                  <div class="d3"></div>
+                  <ul>
+                    <a href="">基本資料</a><A href="">訊息與討論</A>
+                    <a href="">社區管理</a><a href="">登出</a>
+                  </ul>
+                </div>
+              </div>
+              <div class="tkicon" onclick="shide()"><img src="images/sz_12.png"></div>
+            </div>
+            <script>
+            var pop = $('.pop');
+            $('.btn-pop').on('click', function(e) {
+              e.stopPropagation();
+              pop.show();
+            });
+
+            $(document).click(function(e) {
+              // 方法1
+              //    if($(':not(.pop)')){
+              //      pop.hide();
+              //    }
+              // 方法2 
+              if (!pop.is(e.target) && pop.has(e.target).length === 0) {
+                pop.hide();
+              }
+            });
+            </script>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup_k tk_zk" onclick="clm()"></div>
+    <div class="link iphone" id="linkhide">
+      <ul class="tk_topk">
+        <div onclick="clm()" id="" class="gd_icon"><img src="images/nn_09.png"></div>
+        <a href="">物件查詢</a>
+        <a href="">社區查詢</a>
+        <a href="">瀏覽資料</a>
+        <a href="">社區討論</a>
+      </ul>
+    </div>
+    <!---->
+    <script>
+    function shide() {
+      $(".popup_k").show()
+      $("#linkhide").show()
+      $('body').css("overflow", "hidden")
+    }
+
+    function clm() {
+      $(".popup_k").hide()
+      $(".iphone").hide()
+    }
+    </script>
+    <script>
+    window.onload = function() {
+      var img1 = document.getElementById('img1');
+      var onOff = true; //创造一个开关,布尔值，true为1，false为0
+
+      img1.onclick = function() {
+        if (onOff) { //如果是真
+          img1.src = 'images/sz_12_c.png'; //图片路径切换为图片2
+          onOff = false; //并且开关设为假
+        } else { //如果是假
+          img1.src = 'images/sz_12.png'; //图片路径切换为图片1
+          onOff = true; //并且开关设为真
+        }
       }
-      #klecks-root {
-        position: relative;
-        margin: 20px auto;
-        width: 60%;
-        height: 60%;
-        border: 1px solid #878787;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="klecks-root"></div>
-    <!-- embed start -->
-    <script src="./embed/embed.js"></script>
+    }
+    </script>
     <script type="text/javascript">
-      /*
-    Using Klecks in a drawing community:
-    - on first time opening, start with a manually created project (klecks.openProject)
-    - on submit, upload psd (and png) to the server
-    - on continuing a drawing, read psd that was stored on server (klecks.readPsd -> klecks.openProject)
-     */
-
-      const psdURL = "./example-drawing.psd";
-
-      let saveData = (function () {
-        let a = document.createElement("a");
-        document.body.appendChild(a);
-        a.style = "display: none";
-        return function (blob, fileName) {
-          let url = window.URL.createObjectURL(blob);
-          a.href = url;
-          a.download = fileName;
-          a.click();
-          window.URL.revokeObjectURL(url);
-        };
-      })();
-
-      const klecks = new Klecks({
-        container: document.getElementById("klecks-root"),
-        embedUrl: "./embed",
-        onSubmit: (onSuccess, onError) => {
-          // download png
-          saveData(klecks.getPNG(), "drawing.png");
-
-          /*// download psd
-            klecks.getPSD().then((blob) => {
-                saveData(blob, 'drawing.psd');
-            });*/
-
-          setTimeout(() => {
-            onSuccess();
-            location.reload();
-          }, 500);
-        },
+    $(document).ready(function() {
+      $("#itemssx1 .custom_s").on("click", function() {
+        $("#itemssx1 .custom_s").removeClass("active");
+        $(this).addClass("active");
       });
 
-      if (psdURL) {
-        fetch(new Request(psdURL))
-          .then((response) => {
-            return response.arrayBuffer();
-          })
-          .then((buffer) => {
-            return klecks.readPSD(buffer); // resolves to Klecks project
-          })
-          .then((project) => {
-            klecks.openProject(project);
-          })
-          .catch((e) => {
-            klecks.initError("failed to read image");
-          });
-      } else {
-        klecks.openProject({
-          width: 500,
-          height: 500,
-          layers: [
-            {
-              name: "Background",
-              opacity: 1,
-              mixModeStr: "source-over",
-              image: (() => {
-                const canvas = document.createElement("canvas");
-                canvas.width = 500;
-                canvas.height = 500;
-                const ctx = canvas.getContext("2d");
-                ctx.save();
-                ctx.fillStyle = "#fff";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.restore();
-                return canvas;
-              })(),
-            },
-          ],
-        });
-      }
+      $("#itemssx2 .custom_s").on("click", function() {
+        $("#itemssx2 .custom_s").removeClass("active");
+        $(this).addClass("active");
+      });
+      $("#itemssxN .custom_s").on("click", function() {
+        $(this).toggleClass('active');
+      });
+    });
     </script>
-    <!-- embed end -->
+    <style>
+      .fn_left {float: left;width: calc(100% - 65px);}
+    </style>
+    <div class="container mabot10">
+      <div class="row">
+        <div class="col-sm-12 col-xs-12 col-md-12">
+          <div class="sn_title">
+            <div class="sn_title_font fn_left">
+              <img src="images/hos.png" style="margin-left: 5px;">
+              <a href="">首頁 - </a>
+              <a href="">社區管理 - </a>
+              <a href="">編輯社區資料</a>
+            </div>
+            <div class="fn_right"><a href="" class="yulan"><img src="images/2_a29_yl.png" class="yulan_img" style="height: 20px; margin-top:0px !important;">預覽</a></div>
+          </div>
+          <div class="col-sm-12 col-xs-12 col-md-12 mabot20">
+            <div class="ziliao">
+              <div class="shangcwup">
+                <div class="zhutu_title matop10"><i></i><span>社區主圖上傳</span>
+                  <a class="sqxgai" id="drawing_add">添加繪圖</a>
+                </div>
+                <div id="drawing_image" style="width:210px;height:160px;background-size: contain;background-repeat: no-repeat;background-position: center;"></div>
+                <!--新增名称-->
+                <div class="zhutu_title matop10"><i></i><span>社區主圖上傳</span>
+                  <a class="sqxgai" id="picture_add">新增圖片分類</a>
+                </div>
+                <div class="old_li">
+                  <li class="xtbline">
+                    <div class="n_ulpic">
+                      <dt class="write_img"><b class="img" style="background: url(images/sz_35.png); background-size:100% 100%"></b></dt>
+                      <dt class="write_img">
+                        <b class="img"><img src="images/sz_05.png" class="imgov">
+                          <a href=""><img src="images/sz_32.png" class="zhao_p"></a></b></dt>
+                      <dt class="write_img">
+                        <b class="img">
+                          <img src="images/02cq-1.jpg" class="imgov">
+                          <a href=""><img src="images/sz_32.png" class="zhao_p"></a>
+                        </b>
+                      </dt>
+                    </div>
+                  </li>
+                </div>
+                <!--新增内容-->
+                <!-- <div class="xzinput">
+                  <div class="zhutu_title matop10"><i></i><span><input type="text" placeholder="編輯名稱" class="vainput01 scmc"></span>
+                  <a class="sqxgai remove_picture">刪除</a>
+                  </div>
+                  <li class="xtbline">
+                    <div class="n_ulpic">
+                      <dt class="write_img"><b class="img" style="background: url(images/sz_35.png); background-size:100% 100%"></b></dt>
+                    </div>
+                  </li>
+                </div> -->
+                <!--新增内容-->
+                <style>
+                  .bazl{ background: #fff9e9; padding:15px 2%  !important; width: 100% !important;}
+                  .sqxgai {float: right;cursor: pointer;margin-right: 6px;padding: 0px 5px;border-radius: 3px;display: table;
+                    background: rgba(255, 255, 255, 0.8);color: #999;font-size: 15px;}
+                </style>
+                <!--新增名称结束-->
+                <div class="zhutu_title matop10"><i></i><span>基本資料</span>
+                  <div class="sqxgai">Ｘ色表示審核中</div>
+                </div>
+                <!-- 基本资料开始 -->
+                <div class="jbzl" style="display: none;">
+                  <ul>
+                    <li><span>社區名稱</span>
+                      <font>一品金華</font>
+                    </li>
+                    <li><span>地址</span>
+                      <font>臺北市中正區金華街27號</font>
+                    </li>
+                    <li><span>總戶數</span>
+                      <font>120戶</font>
+                    </li>
+                    <li><span>屋齡</span>
+                      <font>20年</font>
+                    </li>
+                    <li><span>樓層</span>
+                      <font>地上 1~12 層 / 地下 1~2 層</font>
+                    </li>
+                    <li><span>基地面積</span>
+                      <font>240坪</font>
+                    </li>
+                    <li><span>土地使用分區</span>
+                      <font>住宅區</font>
+                    </li>
+                    <li><span>建案規畫</span>
+                      <font>住宅</font>
+                    </li>
+                    <li><span>構造種類</span>
+                      <font>鋼筋混凝土(RC)</font>
+                    </li>
+                    <li><span>建設公司</span>
+                      <font>欣隆建設</font>
+                    </li>
+                    <li><span>營造公司</span>
+                      <font>長鴻營造</font>
+                    </li>
+                  </ul>
+                </div>
+                <div class="ohwidth">
+                  <li class="bazl">
+                    <div class="swfont"><span>社區名稱</span><i>*</i></div>
+                    <var>
+                      <input name="" type="text" placeholder="一品金華" class="vainput01 base_info vainput_b">
+                    </var>
+                  </li>
+                  <li>
+                    <div class="swfont"><span>地址</span><i>*</i></div>
+                    <var>
+                      <select name="" class="vainput new_sr50 left" style="color: rgb(153, 153, 153);">
+                        <option style="color: rgb(51, 51, 51);">臺北市</option>
+                        <option style="color: rgb(51, 51, 51);">g</option>
+                      </select>
+                      <select name="" class="vainput new_sr50 right" style="color: rgb(153, 153, 153);">
+                        <option style="color: rgb(51, 51, 51);">中正區</option>
+                        <option style="color: rgb(51, 51, 51);">g</option>
+                      </select>
+                    </var>
+                  </li>
+                  <li>
+                    <div class="swfont"></div>
+                    <var>
+                      <input name="" type="text" placeholder="金華街27號" class="vainput01 base_info vainput_b ">
+                    </var>
+                  </li>
+                  <li class="bazl">
+                    <b>
+                      <div class="swfont"><span>總 戶 數</span></div>
+                      <var>
+                        <input name="" type="text" placeholder="120" class="vainput01 base_info vainput_a">
+                        <font class="right">戶</font>
+                      </var>
+                    </b>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>屋 齡</span></div>
+                      <var><input name="" type="text" placeholder="20" class="vainput01 base_info vainput_a">
+                        <font class="right">年</font>
+                      </var>
+                    </b>
+                  </li>
+                  <li class="bazl">
+                    <b>
+                      <div class="swfont"><span>樓 層</span></div>
+                      <var style=" border-bottom: #eeeeee 1px solid;padding-bottom:12px;">
+                        <input name="" type="text" placeholder="地上 1~12" class="vainput01 base_info vainput_a">
+                        <font class="right">層</font>
+                      </var>
+                      <var>
+                        <input name="" type="text" placeholder="地下 1~2 " class="vainput01 matop10 vainput_a base_info vainput_a">
+                        <font class="right matop10">層</font>
+                      </var>
+                    </b>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>基地面積</span><i>*</i></div>
+                      <var>
+                        <input name="" type="text" placeholder="100" class="vainput01 base_info vainput_a">
+                        <font class="right">坪</font>
+                      </var>
+                    </b>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>房型</span><i>*</i></div>
+                      <var>
+                        <input name="" type="text" placeholder="二室一厅" class="vainput01 base_info vainput_b">
+                      </var>
+                    </b>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>土地使用分區</span></div>
+                      <!-- <var><input name="" type="text" placeholder="請輸入商業區" class="vainput"></var>
+                    <var><input name="" type="text" placeholder="請輸入住宅區" class="vainput matop10"></var> -->
+                      <var style=" border-bottom: #eeeeee 1px solid;padding-bottom:12px;">
+                        <input name="" type="text" placeholder="請輸入商業區" class="vainput base_info vainput_b">
+                      </var>
+                      <var>
+                        <input name="" type="text" placeholder="請輸入住宅區" class="vainput matop10 base_info vainput_b">
+                      </var>
+                    </b>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>建案規畫</span></div>
+                    </b>
+                    <div class="list1" id="selectList">
+                      <div id="itemssxN">
+                        <nav class="custom_nav_n" style="width: 100%;">
+                          <dd class="custom_a"><span class="custom_s">住宅</span></dd>
+                          <dd class="custom_a"><span class="custom_s">套房</span></dd>
+                          <dd class="custom_a"><span class="custom_s">商辦</span></dd>
+                          <dd class="custom_a"><span class="custom_s">華廈</span></dd>
+                          <dd class="custom_a"><span class="custom_s">住宅大樓</span></dd>
+                        </nav>
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>國小學區</span></div>
+                      <var>
+                        <input name="" type="text" placeholder="東門國小" class="vainput01 base_info">
+                        <font class="right">國小</font>
+                      </var>
+                    </b>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>國中學區</span></div>
+                      <var>
+                        <input name="" type="text" placeholder="中正國中" class="vainput01 base_info">
+                        <font class="right">國中</font>
+                      </var>
+                    </b>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>構造種類</span></div>
+                      <var>
+                        <select id="base_select" name="" class="vainput" style="color: rgb(153, 153, 153);">
+                          <option style="color: rgb(51, 51, 51);">鋼筋混凝土(RC)</option>
+                          <option style="color: rgb(51, 51, 51);">RC</option>
+                          <option style="color: rgb(51, 51, 51);">SC</option>
+                          <option style="color: rgb(51, 51, 51);">SRC</option>
+                        </select>
+                      </var>
+                    </b>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>建設公司 </span></div>
+                      <var><input name="" type="text" placeholder="欣隆建設" class="vainput base_info"></var>
+                    </b>
+                  </li>
+                  <li>
+                    <b>
+                      <div class="swfont"><span>營造公司</span></div>
+                      <var><input name="" type="text" placeholder="長鴻營造" class="vainput base_info"></var>
+                    </b>
+                  </li>
+                  <li id="base_upload" class="xtbline" style="padding:15px 0 0px 0;">
+                    <b>
+                      <div class="swfont"><span>資料上傳</span></div>
+                      <var style=" position: relative; overflow: hidden;">
+                        <div style="width: 100%; display: block;">
+                          <input type="hidden" name="_token" value="q6sfstBNrmQyArfGweZ5WfwcWJXEoydXi42US5nm">
+                          <input type="hidden" name="userId" value="15598">
+                          <div class="input_field_weap">
+                            <input required="required" type="file" id="images" class="custom-file-input infile" style="margin-bottom:10PX;" name="images[]" value="" onchange="checkImage('lifeImg')">
+                          </div>
+                          <a href="javascript:void(0)" type="button" id="add_image" class="gradd" name="button">+添加</a>
+                        </div>
+                      </var>
+                    </b>
+                  </li>
+                  <!-- <a class="jb_gx" onclick="gengxin()">更新</a> -->
+                </div>
+                <!-- 基本资料结束 -->
+                <script src="js/jquery-3.2.1.js"></script>
+                <script src="js/bootstrap-3.3.5.js"></script>
+                <div class="zhutu_title matop10"><i></i><span>驗證實價登錄資料</span><a class="sqxgai" onclick="xg_b()">修改</a></div>
+                <li class="xtbline" style="padding: 15px 0 0 0;">
+                  <div class="jb_fontxl">
+                    <p>驗證實價登錄資料驗證實價登錄資料驗證實價登錄資料驗證實價登錄資料</p>
+                    <div class="n_ulpic" style="width: 100%;">
+                      <dt class="write_img"><b class="img"><img src="images/sz_05.png" class="imgov"></b></dt>
+                      <dt class="write_img"><b class="img"><img src="images/sz_05.png" class="imgov"></b></dt>
+                      <dt class="write_img"><b class="img"><img src="images/sz_05.png" class="imgov"></b></dt>
+                    </div>
+                  </div>
+                  <script src="js/summernote.js"></script>
+                  <div id="zl" style="display: none;">
+                    <div id="summernote" style="width: 95%; margin: 0 auto;">
+                      <p>驗證實價登錄資料</p>
+                    </div>
+                    <script>
+                      $('#summernote').summernote({
+                    height: 150,                 // 定义编辑框高度
+                    minHeight: null,             // 定义编辑框最低的高度
+                    maxHeight: null,             // 定义编辑框最高德高度
+                  });
+                  </script>
+                    <a class="jb_gx" onclick="gengxin()">更新</a>
+                  </div>
+                </li>
+                <div class="zhutu_title matop10"><i></i><span>社區介紹</span></div>
+                <li class="xtbline">
+                  <script src="js/summernote-1.js"></script>
+                  <div id="summernote1" style="width: 95%; margin: 0 auto;">
+                    <p>社區介紹</p>
+                  </div>
+                  <script>
+                    $('#summernote1').summernote({
+                  height:150,                 // 定义编辑框高度
+                  minHeight: null,             // 定义编辑框最低的高度
+                  maxHeight: null,             // 定义编辑框最高德高度
+                });
+                </script>
+                </li>
+                <!--新增名称-->
+                <div class="xzinput">
+                  <div class="zhutu_title matop10"><i></i><span><input type="text" placeholder="編輯標題名稱" class="vainput01 scmc"></span><a class="sqxgai remove_picture">刪除</a></div>
+                  <li class="xtbline">
+                    <div class="n_ulpic"><dt class="write_img"><b class="img" style="background: url(images/sz_35.png); background-size:100% 100%"></b></dt></div>
+                  </li>
+                  <li class="xtbline">
+                    <div id="summernote6" style="width: 95%; margin: 0 auto;">
+                      <p></p>
+                    </div>
+                    <script>
+                    $('#summernote6').summernote({
+                      height: 150, // 定义编辑框高度
+                      minHeight: null, // 定义编辑框最低的高度
+                      maxHeight: null, // 定义编辑框最高德高度
+                    });
+                    </script>
+                  </li>
+                </div>
+                <!--新增名称结束-->
+                <div class="xinz_bn">
+                  <div style="width: 100%; border-bottom: #ddd 1px dashed; display: table; padding-bottom: 10px;">
+                    <img src="images/dpao1.png">
+                    <p>在這裡，您可以新增該社區詳情頁上，原本沒有的標題與內容，來豐富您對這個社區的精耕程度。</p>
+                  </div>
+                  <div style="margin: 0 auto; display: table; padding-top: 15px; padding-bottom: 10px;">
+                    <a class="new_ze" id="picture_add">+新增其他標題內容</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="new_tab">
+              <a id="submit" class="dlbut_nn left">完成</a>
+              <a class="new_stop01 left">停止擔任</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bot">
+      <div class="ndbottom">
+        <a href="">關於我們</a>
+        <a href="">隱私權聲明</a>
+        <a href="">服務條款</a>
+        <a href="">資料政策</a>
+        <a href="">常見問題</a>
+        <a href="">官方LINE@客服</a>
+      </div>
+      <span>購買房地產數位行銷<i>|</i>廣豪金資產管理有限公司</span>
+      <span>T:+886-2-27383123 F:+886-2-27374152 </span>
+      <span>E-mail:myservice@mygo.com</span>
+      <span>Copyright © 2015 MyGo.com. All right reserved.</span>
+    </div>
+    <div class="popup_k xgpop" onclick="gmBt()"></div>
+    <div class="pupbot_tk tijiao" id="tijiao" style="display: none;">
+      <div class="link">提示</div>
+      <div class="gets" style="margin-bottom: 10px;">待站長48小時審核</div>
+      <div class="getbut">
+        <a onclick="gmok()" class="gebut01 mabot20 left">確定</a>
+        <a onclick="gmok()" class="gebut02 mabot20 left">取消</a>
+      </div>
+    </div>
+    <div class="pupbot_tk kdts" id="gx" style="display: none;">
+      <div class="link">提示</div>
+      <div class="gets" style="margin-bottom: 10px;">更新成功</div>
+      <a onclick="gb()" class="map_shouc01 mabot20">OK</a>
+    </div>
+    <div class="pupbot_tk kdts" id="drawing_modal" style="width:80%;height:80%;left:10%;top:10%;display: none;">
+      <div class="link">繪圖 <span class="closedraw" style="position: absolute;right:16px;cursor: pointer;">✖</span></div>
+      <div id="klecks-root" style="width:100%;position: absolute;top: 40px;bottom: 0px;"></div>
+    </div>
+    <script>
+    function xg_a() {
+      $("#xg").show()
+    }
+
+    function xg_b() {
+      $("#zl").show()
+    }
+
+    function gengxin() {
+      $(".xgpop").show()
+      $("#gx").show()
+    }
+
+    function gb() {
+      $(".popup_k").hide()
+      $(".kdts").hide()
+    }
+    </script>
+    <script src="js/vendors.bundle.js" type="text/javascript"></script>
+    <script src="embed/embed.js"></script>
+    <script type="text/javascript">
+    jQuery(document).ready(function() {
+      var drawingImage = $("#drawing_image");
+      var klecks = new Klecks({
+        container: document.getElementById("klecks-root"),
+        customSave: function(blob, name, onSuccess, onError) {
+          // drawingImage.css("background-image", 'url(' + URL.createObjectURL(blob) + ')');
+          var reader = new FileReader();
+          reader.onloadend = function(e) {
+            drawingImage.css("background-image", 'url(' + e.target.result + ')').attr('filename', name);
+          }
+          reader.onerror = function() {
+            alert('image source failed');
+          }
+          reader.readAsDataURL(blob);
+          onSuccess();
+          $(".xgpop").hide()
+          $("#drawing_modal").hide();
+        },
+        hideFile: false,
+        isShare: false,
+        helpPath: "./js/draw",
+        aboutEl: (function() {
+          const el = document.createElement("div");
+          el.innerHTML = "<span></span>";
+          return el;
+        })(),
+      });
+      klecks.openProject({});
+      drawingImage.on('click', function() {
+        var parts = drawingImage.css('background-image').split(";base64,");
+        var contentType = parts[0].split(":")[1];
+        var raw = window.atob(parts[1].substr(0, parts[1].length - 2));
+        var rawLength = raw.length;
+        var uInt8Array = new Uint8Array(rawLength);
+        for (let i = 0; i < rawLength; i += 1) {
+          uInt8Array[i] = raw.charCodeAt(i);
+        }
+        var blob = new Blob([uInt8Array], { type: contentType });
+        klecks.importImage({ name: drawingImage.attr('filename'), content: blob });
+        $(".xgpop").show();
+        $("#drawing_modal").show();
+      });
+      $('#drawing_add').on('click', function() {
+        klecks.importImage({ width: drawingImage.width(), height: drawingImage.height() });
+        $(".xgpop").show();
+        $("#drawing_modal").show();
+      });
+      $('#drawing_modal .closedraw').on('click', function() {
+        $(".xgpop").hide()
+        $("#drawing_modal").hide();
+      });
+      $('#submit').on('click', function() {
+        var parts = drawingImage.css('background-image').split(";base64,");
+        var contentType = parts[0].split(":")[1];
+        var raw = window.atob(parts[1].substr(0, parts[1].length - 2));
+        var rawLength = raw.length;
+        var uInt8Array = new Uint8Array(rawLength);
+        for (let i = 0; i < rawLength; i += 1) {
+          uInt8Array[i] = raw.charCodeAt(i);
+        }
+        var blob = new Blob([uInt8Array], { type: contentType });
+        let formData = new FormData();
+        formData.append("file", blob, drawingImage.attr('filename'));
+        let request = new XMLHttpRequest();
+        request.open("POST", "/url", )
+        request.onreadystatechange = () => {
+          if (request.readyState == 4) {
+            alert(request.responseText);
+          }
+        }
+        request.send(formData);
+      });
+
+
+      var max_fields = 0;
+      var wrapper = $(".input_field_weap");
+      var add_button = $("#add_image");
+
+      var x = 1;
+      $(add_button).click(function(e) {
+        e.preventDefault();
+        if (14 - max_fields >= x) {
+          x++;
+          $(wrapper).append('<div class="custom"><label class="custom-file"><input type="file" class="custom-file-input" name="images[]" ><span class="custom-file-control"></span></label><a href="#" class="remove_field">&nbsp;刪除</a></div>'); //add input box
+        } else {
+          alert('最多上傳15張');
+        }
+      });
+      $(wrapper).on("click", ".remove_field", function(e) {
+        e.preventDefault();
+        $(this).parent('div').remove();
+        x--;
+      });
+      // 大楼分布图新增功能开始
+      var max_times = 0;
+      var wrapper_new = $(".old_li");
+      var button = $("#picture_add");
+      var y = 1;
+      $(button).click(function(e) {
+        e.preventDefault();
+        if (14 - max_times >= y) {
+          y++;
+          $(wrapper_new).append('<div class="xzinput"><div class="zhutu_title matop10"><i></i><span><input type="text" placeholder="編輯圖片名稱" class="vainput01 scmc"></span><a class="sqxgai remove_picture">刪除</a></div><li class="xtbline"><div class="n_ulpic"><dt class="write_img"><b class="img" style="background: url(images/sz_35.png); background-size:100% 100%"></b></dt></div></li></div>');
+        } else {
+          alert('最多上傳15張');
+        }
+      });
+
+      $(wrapper_new).on("click", ".remove_picture", function(e) {
+        e.preventDefault();
+        $(this).parent('div').parent('div').remove();
+        y--;
+      });
+
+      // 大楼分布图新增功能结束
+
+      // 页面初始化基本资料不可以修改
+      var inputs = document.getElementsByClassName("base_info");
+      //    for(var i=0;i<inputs.length;i++){
+      //      var item = inputs[i];
+      //      item.readOnly = true;
+      //    }
+
+    });
+
+    // 建安规划
+    //  function addActive(obj){
+    //    var classes = obj.className;
+    //    if(classes.lastIndexOf("jagh") < 0){
+    //      return;
+    //    }
+    //    $(obj).toggleClass('active');
+    //  }
+    //  
+    //  function sqxg1(obj) {
+    //    var classes = obj.className;
+    //    if(classes.lastIndexOf("name_edit") < 0){
+    //      return;
+    //    }
+    //    $(".xgpop").show()
+    //    $("#dizhi").show()
+    //    $('body').css("overflow", "hidden")
+    //  }
+    //  
+    //  function sqxg2(obj) {
+    //    var classes = obj.className;
+    //    if(classes.lastIndexOf("name_edit") < 0){
+    //      return;
+    //    }
+    //    $(".xgpop").show()
+    //    $("#mingcheng").show()
+    //    $('body').css("overflow", "hidden")
+    //  }
+    //  
+    //  function tijiao() {
+    //    $(".xgpop").show()
+    //    $("#tijiao").show()
+    //    $('body').css("overflow", "hidden")
+    //  }
+    //    
+    //  function gmok() {
+    //    $(".xgpop").hide()
+    //    $(".xtab").hide()
+    //    $(".xtab1").hide()
+    //    $(".tijiao").hide()
+    //  }
+    // 基本资料修改按钮
+    //  function jbzlxg(){
+    //    // 基本资料可编辑
+    //    var inputs = document.getElementsByClassName("base_info");
+    //    for(var i=0;i<inputs.length;i++){
+    //      var item = inputs[i];
+    //      item.readOnly = false;
+    //    }
+    //    // 上传显示
+    //    var base_upload = document.getElementById("base_upload");
+    //    base_upload.style.display = "block";
+    //    // 建安规划可点击
+    //    var spans = document.getElementsByClassName("custom_s");
+    //    for(var m=0;m<spans.length;m ++){
+    //      var span = spans[m];
+    //      span.className += " jagh";
+    //    }
+    //    // 下拉框
+    //    document.getElementById("base_select").disabled="";
+    //    
+    //    // 基本资料名称&地址不可修改
+    //    var text_input = document.getElementsByClassName("te_xg");
+    //    for(var n=0;n<text_input.length;n ++){
+    //      var te = text_input[n];
+    //      te.className += " name_edit";
+    //    }
+    //  }
+
+    function showhide() {
+      $('body').css("overflow", "hidden")
+      $("#link").show();
+
+      var odiv = document.getElementById("div1")
+      if (odiv.style.display == "block") {
+        odiv.style.display = "none"
+      } else {
+        odiv.style.display = "block"
+      }
+
+    }
+    var unSelected = "#999";
+    var selected = "#333";
+    $(function() {
+      $("select").css("color", unSelected);
+      $("option").css("color", selected);
+      $("select").change(function() {
+        var selItem = $(this).val();
+        if (selItem == $(this).find('option:first').val()) {
+          $(this).css("color", unSelected);
+        } else {
+          $(this).css("color", selected);
+        }
+      });
+    })
+    </script>
   </body>
+
 </html>
