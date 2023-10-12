@@ -1,0 +1,16 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "22106618",
+      "name": "刊登",
+      "font_class": "kandeng",
+      "unicode": "e653",
+      "unicode_decimal": 58963
+    }
+  ]
+}

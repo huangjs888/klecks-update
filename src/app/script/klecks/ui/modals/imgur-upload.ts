@@ -74,9 +74,9 @@ async function upload(canvas, title, description, type: 'png' | 'jpeg', imgurKey
 
 
 export function imgurUpload(klCanvas: KlCanvas, klRootEl, saveReminder: SaveReminder, imgurKey: string) {
-    if (!imgurKey) {
+    /* if (!imgurKey) {
         throw new Error('imgur key missing');
-    }
+    } */
 
     let inputTitle = document.createElement("input");
     inputTitle.type = "text";
@@ -143,6 +143,9 @@ export function imgurUpload(klCanvas: KlCanvas, klRootEl, saveReminder: SaveRemi
         callback: async function (val) {
             if (val === LANG('upload-submit') || val === "Yes" || val === "Ok") {
                 try {
+                    if (!imgurKey) {
+                        throw new Error('imgur key missing');
+                    }
                     const result = await upload(
                         klCanvas.getCompleteCanvas(1),
                         inputTitle.value,
@@ -163,7 +166,7 @@ export function imgurUpload(klCanvas: KlCanvas, klRootEl, saveReminder: SaveRemi
                     KL.popup({
                         target: klRootEl,
                         type: "error",
-                        message: LANG('upload-failed'),
+                        message: LANG('upload-failed') + ": " + e.message,
                         buttons: ["Ok"]
                     });
                 }

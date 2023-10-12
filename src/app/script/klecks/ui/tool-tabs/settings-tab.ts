@@ -19,6 +19,7 @@ export class SettingsTab {
     constructor (
         onLeftRight: () => void,
         customAbout?: HTMLElement,
+        klRootEl?: HTMLElement,
     ) {
 
 
@@ -101,6 +102,7 @@ ${LANG('settings-language')}: ${language.name} (${language.code})
                 onClick: () => {
                     import('./licenses').then(result => {
                         new Popup({
+                            target: klRootEl,
                             title: BB.el({
                                 content: LANG('licenses'),
                             }),

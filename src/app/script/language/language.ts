@@ -1,5 +1,5 @@
 // @ts-ignore
-import {english, languages, loadLanguage, TTranslationCode} from '../../languages/languages';
+import { english, languages, loadLanguage, TTranslationCode } from '../../languages/languages';
 
 export const LS_LANGUAGE_KEY = 'klecks-language';
 
@@ -9,17 +9,17 @@ export class LanguageStrings {
     private code: string;
 
     // --- public ----
-    constructor () {
+    constructor() {
         // need to use setLanguage for a different language
-        this.data = {...english};
+        this.data = { ...english };
         this.code = 'en';
     }
 
-    async setLanguage (langCode: string): Promise<void> {
+    async setLanguage(langCode: string): Promise<void> {
         if (langCode === 'en') {
-            this.data = {...english};
+            this.data = { ...english };
         } else {
-            this.data = {...english, ...(await loadLanguage(langCode))};
+            this.data = { ...english, ...(await loadLanguage(langCode)) };
         }
         this.code = langCode;
         document.documentElement.setAttribute("lang", langCode);
@@ -28,32 +28,32 @@ export class LanguageStrings {
         });
     }
 
-    get (code: TTranslationCode): string {
+    get(code: TTranslationCode): string {
         if (!(code in this.data)) {
             throw new Error('translation code doesn\'t exist: ' + code);
         }
         return this.data[code];
     }
 
-    getLanguage (): {code: string; name: string} {
+    getLanguage(): { code: string; name: string } {
         return languages.find(item => {
             return item.code === this.code;
         })
     }
 
-    getCode (): string {
+    getCode(): string {
         return this.code;
     }
 
     // get notified on language change
-    subscribe (subscriber: () => void) {
+    subscribe(subscriber: () => void) {
         if (this.listeners.includes(subscriber)) {
             return;
         }
         this.listeners.push(subscriber);
     }
 
-    unsubscribe (subscriber: () => void) {
+    unsubscribe(subscriber: () => void) {
         for (let i = 0; i < this.listeners.length; i++) {
             if (subscriber === this.listeners[i]) {
                 this.listeners.splice(i, 1);
@@ -81,6 +81,8 @@ let activeLanguageCode: string = 'en'; // active language code
     } catch (e) {
         // likely cookies disabled in Safari
     }
+    langs.splice(0);
+    langs.push('zh-TW');
     for (let i = 0; i < langs.length; i++) {
         const lang = langs[i];
         const found = languages.find(item => {
@@ -95,7 +97,7 @@ let activeLanguageCode: string = 'en'; // active language code
 
 export const languageStrings = new LanguageStrings();
 
-export const LANG = (code: TTranslationCode | null, replace?: {[key: string]: string}): string => {
+export const LANG = (code: TTranslationCode | null, replace?: { [key: string]: string }): string => {
     if (replace) {
         let result = languageStrings.get(code);
         const keyArr = Object.keys(replace);

@@ -288,7 +288,7 @@ export function ToolDropdown(p) {
 
         arrowButton.style.display = 'none';
         div.style.zIndex = '1';
-        document.body.appendChild(overlay);
+        p.klRootEl.appendChild(overlay);
         div.appendChild(dropdownWrapper);
     }
 
@@ -297,7 +297,7 @@ export function ToolDropdown(p) {
         isOpen = false;
         arrowButton.style.removeProperty('display');
         div.style.removeProperty('z-index');
-        document.body.removeChild(overlay);
+        p.klRootEl.removeChild(overlay);
 
         div.removeChild(dropdownWrapper);
     }

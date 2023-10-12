@@ -279,6 +279,7 @@ export const KlColorSlider = function (p) {
         },
         onClick: function() {
             HexColorDialog({
+                klRootEl: p.klRootEl,
                 color: new BB.RGB(primaryColorRGB.r, primaryColorRGB.g, primaryColorRGB.b),
                 onClose: function(rgbObj) {
                     if (!rgbObj) {

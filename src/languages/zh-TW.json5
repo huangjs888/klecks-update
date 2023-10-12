@@ -1142,7 +1142,7 @@ filled: {
     },
     'embed-init-waiting': {
         original: 'Waiting for image',
-        value: '圖像上傳中'
+        value: '加載畫布中...'
     },
     unsaved: {
         original: 'Unsaved',

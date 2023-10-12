@@ -1,11 +1,11 @@
-import {BB} from '../../../bb/bb';
-import {KL} from '../../kl';
-import {klHistory} from '../../history/kl-history';
-import {IKeyString} from '../../../bb/bb.types';
-import {StatusOverlay} from '../components/status-overlay';
-import {KlCanvasWorkspace} from '../../canvas-ui/kl-canvas-workspace';
-import {KlCanvas} from '../../canvas/kl-canvas';
-import {LANG} from '../../../language/language';
+import { BB } from '../../../bb/bb';
+import { KL } from '../../kl';
+import { klHistory } from '../../history/kl-history';
+import { IKeyString } from '../../../bb/bb.types';
+import { StatusOverlay } from '../components/status-overlay';
+import { KlCanvasWorkspace } from '../../canvas-ui/kl-canvas-workspace';
+import { KlCanvas } from '../../canvas/kl-canvas';
+import { LANG } from '../../../language/language';
 
 
 export class FilterTab {
@@ -13,8 +13,8 @@ export class FilterTab {
     private readonly div: HTMLDivElement;
     private isInit = false;
 
-    constructor (
-        private klRootEl,
+    constructor(
+        private klApp,
         private klColorSlider,
         private layerManager,
         private setCurrentLayer,
@@ -102,7 +102,7 @@ export class FilterTab {
                     _this.layerManager.update();
                 }
 
-                if (filterArr[filterKey].isInstant){
+                if (filterArr[filterKey].isInstant) {
                     button.blur();
                     applyFilter(null);
                     _this.statusOverlay.out('"' + filterArr[filterKey].name + '" ' + LANG('filter-applied'), true);
@@ -113,8 +113,9 @@ export class FilterTab {
                         canvas: _this.getKlCanvas(),
                         maxWidth: _this.getKlMaxCanvasSize(),
                         maxHeight: _this.getKlMaxCanvasSize(),
-                        currentColorRgb: {r: _this.getCurrentColor().r, g: _this.getCurrentColor().g, b: _this.getCurrentColor().b},
-                        secondaryColorRgb: {r: secondaryColorRGB.r, g: secondaryColorRGB.g, b: secondaryColorRGB.b}
+                        bbox: _this.klApp.getBBox(),
+                        currentColorRgb: { r: _this.getCurrentColor().r, g: _this.getCurrentColor().g, b: _this.getCurrentColor().b },
+                        secondaryColorRgb: { r: secondaryColorRGB.r, g: secondaryColorRGB.g, b: secondaryColorRGB.b }
                     });
 
                     if (!filterDialog) {
@@ -124,8 +125,8 @@ export class FilterTab {
                     }
 
                     let closefunc;
-                    filterDialog.errorCallback = function(e) {
-                        setTimeout(function() {
+                    filterDialog.errorCallback = function (e) {
+                        setTimeout(function () {
                             alert('Error: could not perform action');
                             throw e;
                         }, 0);
@@ -139,13 +140,13 @@ export class FilterTab {
                     }
 
                     KL.popup({
-                        target: _this.klRootEl,
+                        target: _this.klApp.getEl(),
                         message: "<b>" + filterArr[filterKey].name + "</b>",
                         div: filterDialog.element,
                         style: style,
                         buttons: ["Ok", "Cancel"],
                         clickOnEnter: 'Ok',
-                        callback: function(result) {
+                        callback: function (result) {
                             finishedDialog(result, filterDialog);
                         },
                         closefunc: function (func) {

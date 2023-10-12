@@ -1,7 +1,7 @@
-import {KL} from '../klecks/kl';
-import {klHistory} from '../klecks/history/kl-history';
-import {BB} from '../bb/bb';
-import {showIframePopup} from '../klecks/ui/modals/show-iframe-popup';
+import { KL } from '../klecks/kl';
+import { klHistory } from '../klecks/history/kl-history';
+import { BB } from '../bb/bb';
+import { showIframePopup } from '../klecks/ui/modals/show-iframe-popup';
 // @ts-ignore
 import newImageImg from 'url:~/src/app/img/ui/new-image.svg';
 // @ts-ignore
@@ -12,17 +12,17 @@ import shareImg from 'url:~/src/app/img/ui/share.svg';
 import uploadImg from 'url:~/src/app/img/ui/upload.svg';
 // @ts-ignore
 import importImg from 'url:~/src/app/img/ui/import.svg';
-import {exportType} from '../klecks/ui/tool-tabs/file-tab';
-import {ToolspaceTopRow} from "../embed/toolspace-top-row";
-import {IInitState, IKlProject, IKlPsd} from '../klecks/kl.types';
-import {importFilters} from '../klecks/filters/filters-lazy';
-import {base64ToBlob} from '../klecks/storage/base-64-to-blob';
-import {klCanvasToPsdBlob} from '../klecks/storage/kl-canvas-to-psd-blob';
-import {ProjectStore} from '../klecks/storage/project-store';
-import {SaveReminder} from "../klecks/ui/components/save-reminder";
-import {KlCanvasWorkspace} from '../klecks/canvas-ui/kl-canvas-workspace';
-import {KlCanvas} from '../klecks/canvas/kl-canvas';
-import {LANG} from '../language/language';
+import { exportType } from '../klecks/ui/tool-tabs/file-tab';
+import { ToolspaceTopRow } from "../embed/toolspace-top-row";
+import { IInitState, IKlProject, IKlPsd } from '../klecks/kl.types';
+import { importFilters } from '../klecks/filters/filters-lazy';
+import { base64ToBlob } from '../klecks/storage/base-64-to-blob';
+import { klCanvasToPsdBlob } from '../klecks/storage/kl-canvas-to-psd-blob';
+import { ProjectStore } from '../klecks/storage/project-store';
+import { SaveReminder } from "../klecks/ui/components/save-reminder";
+import { KlCanvasWorkspace } from '../klecks/canvas-ui/kl-canvas-workspace';
+import { KlCanvas } from '../klecks/canvas/kl-canvas';
+import { LANG } from '../language/language';
 // @ts-ignore
 import toolPaintImg from 'url:~/src/app/img/ui/tool-paint.svg';
 // @ts-ignore
@@ -34,16 +34,25 @@ import toolTextImg from 'url:~/src/app/img/ui/tool-text.svg';
 // @ts-ignore
 import toolShapeImg from 'url:~/src/app/img/ui/tool-shape.svg';
 // @ts-ignore
+import tabEditImg from 'url:~/src/app/img/ui/tab-edit.svg';
+// @ts-ignore
+import tabFileImg from 'url:~/src/app/img/ui/tab-file.svg';
+// @ts-ignore
 import tabSettingsImg from 'url:~/src/app/img/ui/tab-settings.svg';
 // @ts-ignore
 import tabLayersImg from 'url:~/src/app/img/ui/tab-layers.svg';
-import {LocalStorage} from '../bb/base/local-storage';
+import { LocalStorage } from '../bb/base/local-storage';
 
 
 interface IKlAppOptions {
     saveReminder?: SaveReminder;
-    projectStore?: ProjectStore;
+    projectStore?: ProjectStore | null;
     logoImg?: any; // app logo
+    onLogo?: () => void;
+    customSave?: (blob: Blob, filename: string, onSuccess: () => void, onError: () => void) => void;
+    hideFile?: boolean;
+    isShare?: boolean;
+    helpPath?: string;
     bottomBar?: HTMLElement; // row at bottom of toolspace
     embed?: {
         url: string;
@@ -58,33 +67,50 @@ interface IKlAppOptions {
 
 importFilters();
 
-export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
+export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions, container?: HTMLElement) {
+    function resetCanvas(param) {
+        klCanvas.reset(param);
+        layerManager.update(0);
+        setCurrentLayer(klCanvas.getLayer(0));
+        klCanvasWorkspace.resetView();
+        handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
+        isFirstImage = false;
+    }
+    const getBBox = () => {
+        const width = container ? (container.clientWidth || container.offsetWidth) : window.innerWidth;
+        const height = container ? (container.clientHeight || container.offsetHeight) : window.innerHeight;
+        return {
+            width,
+            height
+        };
+    };
     // default 2048, unless your screen is bigger than that (that computer then probably has the horsepower for that)
     // but not larger than 4096 - a fairly arbitrary decision
     let klMaxCanvasSize = Math.min(4096, Math.max(2048, Math.max(window.screen.width, window.screen.height)));
     let collapseThreshold = 820;
     let uiState: 'left' | 'right' = (pOptions.embed ? 'left' : (LocalStorage.getItem('uiState') ? LocalStorage.getItem('uiState') : 'right')) as any;
-    const filenameBase = pOptions.app?.filenameBase ? pOptions.app.filenameBase : 'Klecks';
+    const filenameBase = pOptions.app?.filenameBase ? pOptions.app.filenameBase : 'image';
     const projectStore = pOptions.projectStore;
     let klRootEl = document.createElement("div");
     klRootEl.className = 'g-root';
-    let uiWidth: number = Math.max(0, window.innerWidth);
-    let uiHeight: number = Math.max(0, window.innerHeight);
-    const toolWidth = 271;
+    const bbox = getBBox();
+    let uiWidth: number = Math.max(0, bbox.width);
+    let uiHeight: number = Math.max(0, bbox.height);
+    const toolWidth = 270;
     let exportType: exportType = 'png';
     let klCanvas: KlCanvas = new KL.KlCanvas(
         pProject ? {
             projectObj: pProject
         } : {
-            width: Math.max(10, Math.min(klMaxCanvasSize, window.innerWidth < collapseThreshold ? uiWidth : uiWidth - toolWidth)),
+            width: Math.max(10, Math.min(klMaxCanvasSize, bbox.width < collapseThreshold ? uiWidth : uiWidth - toolWidth)),
             height: Math.max(10, Math.min(klMaxCanvasSize, uiHeight)),
         }, pOptions.embed ? -1 : 0);
     klCanvas.setHistory(klHistory);
-    let initState: IInitState = null;
+    let initState: IInitState | null = null;
     let mainTabRow;
 
     if (!pOptions.saveReminder) {
-        pOptions.saveReminder = {init: () => {}, reset: () => {}} as SaveReminder;
+        pOptions.saveReminder = { init: () => { }, reset: () => { } } as SaveReminder;
     }
 
     function translateSmoothing(s: number): number {
@@ -116,12 +142,12 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
     } else {
         klHistory.pause(true);
         klCanvas.addLayer();
-        klCanvas.layerFill(0, { r: 255, g: 255, b: 255});
+        klCanvas.layerFill(0, { r: 255, g: 255, b: 255 });
         klHistory.pause(false);
     }
     try {
         initState = {
-            canvas: new KL.KlCanvas({copy: klCanvas}, pOptions.embed ? -1 : 0),
+            canvas: new KL.KlCanvas({ copy: klCanvas }, pOptions.embed ? -1 : 0),
             focus: klCanvas.getLayerCount() - 1,
             brushes: {},
         };
@@ -189,7 +215,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         ],
     });
 
-    drawEventChain.setChainOut(function(event) {
+    drawEventChain.setChainOut(function (event) {
         if (event.type === 'down') {
             toolspace.style.pointerEvents = 'none';
             currentBrush.startLine(event.x, event.y, event.pressure);
@@ -225,24 +251,26 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         width: Math.max(0, uiWidth - toolWidth),
         height: uiHeight,
         onDraw: drawEventChain.chainIn,
-        onPick: function(rgbObj, isDragDone) {
+        onPick: function (rgbObj, isDragDone) {
             brushSettingService.setColor(rgbObj);
             if (isDragDone) {
                 klColorSlider.pickingDone();
                 klCanvasWorkspace.setMode(toolspaceToolRow.getActive());
             }
         },
-        onFill: function(canvasX, canvasY) {
+        onFill: function (canvasX, canvasY) {
             let layerIndex = klCanvas.getLayerIndex(currentLayerCtx.canvas);
             klCanvas.floodFill(layerIndex, canvasX, canvasY, klColorSlider.getColor(), fillUi.getOpacity(), fillUi.getTolerance(), fillUi.getSample(), fillUi.getGrow(), fillUi.getContiguous());
             klCanvasWorkspace.requestFrame();
         },
-        onText: function(canvasX, canvasY, angleRad) {
+        onText: function (canvasX, canvasY, angleRad) {
             if (KL.dialogCounter.get() > 0) {
                 return;
             }
 
             KL.textToolDialog({
+                klRootEl: klRootEl,
+                bbox: getBBox(),
                 klCanvas: klCanvas,
                 layerIndex: klCanvas.getLayerIndex(currentLayerCtx.canvas),
                 x: canvasX,
@@ -256,7 +284,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 isItalic: textToolSettings.isItalic,
                 font: textToolSettings.font,
                 opacity: textToolSettings.opacity,
-                onConfirm: function(val) {
+                onConfirm: function (val) {
 
                     let colorRGBA = val.color;
                     colorRGBA.a = val.opacity;
@@ -286,7 +314,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             });
 
         },
-        onShape: function(typeStr, canvasX, canvasY, angleRad) {
+        onShape: function (typeStr, canvasX, canvasY, angleRad) {
             if (typeStr === 'down') {
                 shapeTool.onDown(canvasX, canvasY, angleRad);
             }
@@ -298,7 +326,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             }
         },
 
-        onViewChange: function(viewChangeObj) {
+        onViewChange: function (viewChangeObj) {
 
             if (viewChangeObj.changed.includes('scale')) {
                 statusOverlay.out({
@@ -313,14 +341,14 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
 
             handUi.update(viewChangeObj.scale, viewChangeObj.angle * 180 / Math.PI);
         },
-        onUndo: function() {
+        onUndo: function () {
             if (klHistory.canUndo()) {
                 if (undoRedoCatchup.undo()) {
                     statusOverlay.out(LANG('undo'), true);
                 }
             }
         },
-        onRedo: function() {
+        onRedo: function () {
             if (klHistory.canRedo()) {
                 if (undoRedoCatchup.redo()) {
                     statusOverlay.out(LANG('redo'), true);
@@ -329,7 +357,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         },
     });
     let keyListener = new BB.KeyListener({
-        onDown: function(keyStr, event, comboStr) {
+        onDown: function (keyStr, event, comboStr) {
             if (KL.dialogCounter.get() > 0) {
                 return;
             }
@@ -343,10 +371,10 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             }
 
             if (comboStr === 'plus') {
-                klCanvasWorkspace.zoomByStep(keyListener.isPressed('shift') ? 1/8 : 1/2);
+                klCanvasWorkspace.zoomByStep(keyListener.isPressed('shift') ? 1 / 8 : 1 / 2);
             }
             if (comboStr === 'minus') {
-                klCanvasWorkspace.zoomByStep(keyListener.isPressed('shift') ? -1/8 : -1/2);
+                klCanvasWorkspace.zoomByStep(keyListener.isPressed('shift') ? -1 / 8 : -1 / 2);
             }
             if (comboStr === 'home') {
                 klCanvasWorkspace.fitView();
@@ -379,19 +407,22 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                     event.preventDefault();
 
                     (async () => {
-                        let success = true;
-                        try {
-                            await projectStore.store(klCanvas.getProject());
-                        } catch (e) {
-                            success = false;
-                            setTimeout(() => {
-                                throw new Error('keyboard-shortcut: failed to store browser storage, ' + e);
-                            }, 0);
-                            statusOverlay.out('❌ ' + LANG('file-storage-failed'), true);
-                        }
-                        if (success) {
-                            pOptions.saveReminder.reset();
-                            statusOverlay.out(LANG('file-storage-stored'), true);
+                        if (projectStore) {
+                            let success = true;
+                            try {
+                                await projectStore.store(klCanvas.getProject());
+                            } catch (e) {
+                                success = false;
+                                setTimeout(() => {
+                                    throw new Error('keyboard-shortcut: failed to store browser storage, ' + e);
+                                }, 0);
+                                statusOverlay.out('❌ ' + LANG('file-storage-failed'), true);
+                            }
+                            if (success) {
+                                pOptions.saveReminder.reset();
+                                statusOverlay.out(LANG('file-storage-stored'), true);
+                            }
+
                         }
                     })();
                 }
@@ -421,7 +452,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             }
 
 
-            if (['r+left','r+right'].includes(comboStr)) {
+            if (['r+left', 'r+right'].includes(comboStr)) {
                 if (keyStr === 'left') {
                     klCanvasWorkspace.setAngle(-15, true);
                     handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
@@ -450,7 +481,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             if (['delete', 'backspace'].includes(comboStr)) {
                 let layerIndex = klCanvas.getLayerIndex(currentLayerCtx.canvas);
                 if (layerIndex === 0 && !brushUiObj.eraserBrush.getIsTransparentBg()) {
-                    klCanvas.layerFill(layerIndex, {r: 255, g: 255, b: 255}, 'source-in');
+                    klCanvas.layerFill(layerIndex, { r: 255, g: 255, b: 255 }, 'source-in');
                 } else {
                     klCanvas.clearLayer(layerIndex);
                 }
@@ -500,7 +531,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
 
 
         },
-        onUp: function(keyStr, event) {
+        onUp: function (keyStr, event) {
         }
     });
 
@@ -559,19 +590,12 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
 
             BB.resizeCanvas(tempCanvas, resizedDimensions.width, resizedDimensions.height);
 
-            klCanvas.reset({
+            resetCanvas({
                 width: resizedDimensions.width,
                 height: resizedDimensions.height,
                 image: tempCanvas,
                 layerName: filename
             });
-
-            layerManager.update(0);
-            setCurrentLayer(klCanvas.getLayer(0));
-            klCanvasWorkspace.resetView();
-            handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
-
-            isFirstImage = false;
         }
 
         /**
@@ -589,7 +613,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 targetCanvas.height = cropObj.height;
                 targetCanvas.getContext('2d').drawImage(cropCanvas, 0, 0);
             }
-            if (cropObj && (cropObj.width !== convertedPsdObj.width ||cropObj.height !== convertedPsdObj.height)) {
+            if (cropObj && (cropObj.width !== convertedPsdObj.width || cropObj.height !== convertedPsdObj.height)) {
                 let cropCanvas = BB.canvas(cropObj.width, cropObj.height);
                 convertedPsdObj.width = cropObj.width;
                 convertedPsdObj.height = cropObj.height;
@@ -644,9 +668,10 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         function importAsLayer(canvas) {
             KL.showImportAsLayerDialog({
                 target: klRootEl,
+                bbox: getBBox(),
                 klCanvas: klCanvas,
                 importImage: canvas,
-                callback: function(transformObj, isPixelated: boolean) {
+                callback: function (transformObj, isPixelated: boolean) {
                     if (!transformObj) {
                         return;
                     }
@@ -679,8 +704,9 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             KL.showImportImageDialog({
                 image: importedImage,
                 target: klRootEl,
+                bbox: getBBox(),
                 maxSize: klMaxCanvasSize,
-                callback: function(res) {
+                callback: function (res) {
                     if (res.type === 'as-image') {
                         importAsImage(res.image);
                     } else if (res.type === 'as-image-psd') {
@@ -762,7 +788,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 }
             });
         } else if (e.clipboardData.items[0]) {
-            e.clipboardData.items[0].getAsString(function(pasteStr) {
+            e.clipboardData.items[0].getAsString(function (pasteStr) {
                 pasteStr = pasteStr.trim();
                 if (pasteStr.match(/^https?/)) {
                     // url
@@ -808,7 +834,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             extension = extension[extension.length - 1].toLowerCase();
             if (extension === "psd") {
 
-                (function(f) {
+                (function (f) {
                     let loaderSizeBytes = 1024 * 1024 * 25; // 25mb
                     let maxSizeBytes = 1024 * 1024 * 1024; // 1gb
                     let maxResolution = 4096;
@@ -845,7 +871,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                     let reader = new FileReader();
                     reader.onload = function (readerResult) {
 
-                        KL.loadAgPsd().then(function(agPsdLazy) {
+                        KL.loadAgPsd().then(function (agPsdLazy) {
 
                             if (doShowLoader && !loaderIsOpen) {
                                 return;
@@ -971,14 +997,14 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
 
     if (!pOptions.embed) {
         new KL.KlImageDropper({
-            target: document.body,
-            onDrop: function(files, optionStr) {
+            target: klRootEl,
+            onDrop: function (files, optionStr) {
                 if (KL.dialogCounter.get() > 0) {
                     return;
                 }
                 handleFileSelect(files, optionStr);
             },
-            enabledTest: function() {
+            enabledTest: function () {
                 return KL.dialogCounter.get() === 0;
             }
         });
@@ -993,7 +1019,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         if (KL.brushesUI.hasOwnProperty(b)) {
             let ui = new KL.brushesUI[b].Ui({
                 onSizeChange: sizeWatcher,
-                onOpacityChange: function(opacity) {
+                onOpacityChange: function (opacity) {
                     brushSettingService.emitOpacity(opacity);
                 },
                 onConfigChange: () => {
@@ -1017,7 +1043,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         bottom: '0'
     });
 
-    let statusOverlay = new KL.StatusOverlay();
+    let statusOverlay = new KL.StatusOverlay(klRootEl);
 
     const toolspace = BB.el({});
     const toolspaceInner = BB.el({
@@ -1030,7 +1056,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
 
 
     let toolspaceCollapser = new KL.ToolspaceCollapser({
-        onChange: function() {
+        onChange: function () {
             updateCollapse();
         }
     });
@@ -1138,9 +1164,9 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
 
 
     let overlayToolspace;
-    setTimeout(function() {
+    setTimeout(function () {
         overlayToolspace = new KL.OverlayToolspace({
-            enabledTest: function() {
+            enabledTest: function () {
                 return KL.dialogCounter.get() === 0 && !lineSanitizer.getIsDrawing();
             },
             brushSettingService,
@@ -1168,7 +1194,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
     if (pOptions.embed) {
         toolspaceTopRow = new ToolspaceTopRow({
             onHelp: () => {
-                showIframePopup(pOptions.embed.url + '/help.html', !!pOptions.embed);
+                showIframePopup(pOptions.embed.url + '/help.html', !!pOptions.embed, klRootEl, getBBox());
             },
             onSubmit: () => {
                 KL.popup({
@@ -1205,24 +1231,22 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
     } else {
         toolspaceTopRow = new KL.ToolspaceTopRow({
             logoImg: pOptions.logoImg,
-            onLogo: function() {
-                showIframePopup('./home/', !!pOptions.embed);
-            },
-            onNew: function() {
+            onLogo: pOptions.onLogo,
+            onNew: function () {
                 showNewImageDialog();
             },
-            onImport: function() {
-                fileTab.triggerImport();
+            onImport: function () {
+                fileTab && fileTab.triggerImport();
             },
-            onSave: function() {
+            onSave: function () {
                 saveToComputer.save();
             },
-            onShare: function() {
+            onShare: pOptions.isShare ? function () {
                 shareImage();
-            },
-            onHelp: function() {
-                showIframePopup('./help/', !!pOptions.embed);
-            },
+            } : null,
+            onHelp: pOptions.helpPath ? function () {
+                showIframePopup(pOptions.helpPath + '/help.html', !!pOptions.embed, klRootEl, getBBox());
+            } : null,
         });
     }
     BB.addClassName(toolspaceTopRow.getElement(), 'toolspace-row-shadow');
@@ -1230,7 +1254,8 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
     toolspaceInner.appendChild(toolspaceTopRow.getElement());
 
     let toolspaceToolRow = new KL.ToolspaceToolRow({
-        onActivate: function(activeStr) {
+        klRootEl: klRootEl,
+        onActivate: function (activeStr) {
             if (activeStr === 'draw') {
                 klCanvasWorkspace.setMode('draw');
             } else if (activeStr === 'hand') {
@@ -1248,21 +1273,21 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             updateMainTabVisibility();
             klColorSlider.pickingDone();
         },
-        onZoomIn: function() {
-            klCanvasWorkspace.zoomByStep(keyListener.isPressed('shift') ? 1/8 : 1/2);
+        onZoomIn: function () {
+            klCanvasWorkspace.zoomByStep(keyListener.isPressed('shift') ? 1 / 8 : 1 / 2);
         },
-        onZoomOut: function() {
-            klCanvasWorkspace.zoomByStep(keyListener.isPressed('shift') ? -1/8 : -1/2);
+        onZoomOut: function () {
+            klCanvasWorkspace.zoomByStep(keyListener.isPressed('shift') ? -1 / 8 : -1 / 2);
         },
-        onUndo: function() {
+        onUndo: function () {
             undoRedoCatchup.undo();
         },
-        onRedo: function() {
+        onRedo: function () {
             undoRedoCatchup.redo();
         }
     });
     toolspaceToolRow.setIsSmall(uiHeight < 540);
-    klHistory.addListener(function() {
+    klHistory.addListener(function () {
         toolspaceToolRow.setEnableUndo(klHistory.canUndo());
         toolspaceToolRow.setEnableRedo(klHistory.canRedo());
     });
@@ -1311,7 +1336,8 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         height: 30,
         svHeight: 100,
         startValue: new BB.RGB(0, 0, 0),
-        onPick: setBrushColor
+        onPick: setBrushColor,
+        klRootEl: klRootEl
     });
     klColorSlider.setHeight(Math.max(163, Math.min(400, uiHeight - 505)));
     klColorSlider.setPickCallback(function (doPick) {
@@ -1335,7 +1361,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
     });
     let toolspaceStabilizerRow = new KL.ToolspaceStabilizerRow({
         smoothing: 1,
-        onSelect: function(v) {
+        onSelect: function (v) {
             lineSmoothing.setSmoothing(translateSmoothing(v));
         }
     });
@@ -1358,7 +1384,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                     id: keyStr,
                     image: KL.brushesUI[keyStr].image,
                     title: KL.brushesUI[keyStr].tooltip,
-                    onOpen: function() {
+                    onOpen: function () {
                         brushUiObj[keyStr].getElement().style.display = 'block';
                         setCurrentBrush(keyStr);
                         klColorSlider.pickingDone();
@@ -1369,7 +1395,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                         sizeWatcher(brushUiObj[keyStr].getSize());
                         brushSettingService.emitOpacity(brushUiObj[keyStr].getOpacity());
                     },
-                    onClose: function() {
+                    onClose: function () {
                         brushUiObj[keyStr].getElement().style.display = 'none';
                     }
                 };
@@ -1392,15 +1418,15 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
     const handUi = new KL.HandUi({
         scale: 1,
         angleDeg: 0,
-        onReset: function() {
+        onReset: function () {
             klCanvasWorkspace.resetView(true);
             handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
         },
-        onFit: function() {
+        onFit: function () {
             klCanvasWorkspace.fitView();
             handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
         },
-        onAngleChange: function(angleDeg, isRelative) {
+        onAngleChange: function (angleDeg, isRelative) {
             klCanvasWorkspace.setAngle(angleDeg, isRelative);
             handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
         },
@@ -1419,7 +1445,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
     });
 
     let shapeTool = new KL.ShapeTool({
-        onShape: function(isDone, x1, y1, x2, y2, angleRad) {
+        onShape: function (isDone, x1, y1, x2, y2, angleRad) {
 
             let layerIndex = klCanvas.getLayerIndex(currentLayerCtx.canvas);
 
@@ -1453,7 +1479,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 klCanvas.drawShape(layerIndex, shapeObj);
             } else {
                 klCanvas.setComposite(layerIndex, {
-                    draw: function(ctx) {
+                    draw: function (ctx) {
                         KL.drawShape(ctx, shapeObj);
                     }
                 });
@@ -1481,7 +1507,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
     layerPreview.setLayer(klCanvas.getLayer(klCanvas.getLayerIndex(currentLayerCtx.canvas)));
 
     const filterTab = new KL.FilterTab(
-        klRootEl,
+        this,
         klColorSlider,
         layerManager,
         setCurrentLayer,
@@ -1528,28 +1554,22 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
 
     function showNewImageDialog() {
         KL.newImageDialog({
+            klRootEl: klRootEl,
             currentColor: currentColor,
             secondaryColor: klColorSlider.getSecondaryRGB(),
             maxCanvasSize: klMaxCanvasSize,
             canvasWidth: klCanvas.getWidth(),
             canvasHeight: klCanvas.getHeight(),
-            workspaceWidth: window.innerWidth < collapseThreshold ? uiWidth : uiWidth - toolWidth,
+            workspaceWidth: getBBox().width < collapseThreshold ? uiWidth : uiWidth - toolWidth,
             workspaceHeight: uiHeight,
-            onConfirm: function(width, height, color) {
-                klCanvas.reset({
+            onConfirm: function (width, height, color) {
+                resetCanvas({
                     width: width,
                     height: height,
                     color: color.a === 1 ? color : null
                 });
-
-                layerManager.update(0);
-                setCurrentLayer(klCanvas.getLayer(0));
-                klCanvasWorkspace.resetView();
-                handUi.update(klCanvasWorkspace.getScale(), klCanvasWorkspace.getAngleDeg());
-
-                isFirstImage = false;
             },
-            onCancel: function() {}
+            onCancel: function () { }
         });
     }
 
@@ -1558,11 +1578,37 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             canvas: klCanvas.getCompleteCanvas(1),
             fileName: BB.getDate() + filenameBase + '.png',
             title: BB.getDate() + filenameBase + '.png',
-            callback: callback ? callback : function() {}
+            callback: callback ? callback : function () { }
         });
     }
 
     const saveToComputer = new KL.SaveToComputer(
+        typeof pOptions.customSave === 'function' ? (blob, flename) => {
+            KL.popup({
+                target: klRootEl,
+                message: LANG('submit-prompt'),
+                buttons: [LANG('submit'), 'Cancel'],
+                callback: async (result) => {
+                    if (result !== LANG('submit')) {
+                        return;
+                    }
+
+                    let overlay = BB.el({
+                        parent: klRootEl,
+                        className: 'upload-overlay',
+                        content: '<div class="spinner"></div> ' + LANG('submit-submitting'),
+                    });
+                    pOptions.customSave(blob, flename,
+                        () => {
+                            pOptions.saveReminder.reset();
+                            klRootEl.removeChild(overlay);
+                        },
+                        () => {
+                            klRootEl.removeChild(overlay);
+                        });
+                }
+            });
+        } : null,
         pOptions.saveReminder,
         klRootEl,
         () => exportType,
@@ -1583,9 +1629,9 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             saveToComputer.save();
         },
         showNewImageDialog,
-        shareImage,
+        pOptions.isShare ? shareImage : null,
         () => { // on upload
-            KL.imgurUpload(klCanvas, klRootEl, pOptions.saveReminder, pOptions.app && pOptions.app.imgurKey ? pOptions.app.imgurKey : null, );
+            KL.imgurUpload(klCanvas, klRootEl, pOptions.saveReminder, pOptions.app && pOptions.app.imgurKey ? pOptions.app.imgurKey : null,);
         },
         copyToClipboard,
         pOptions.saveReminder,
@@ -1599,7 +1645,8 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 LocalStorage.setItem('uiState', uiState);
             }
         },
-        pOptions.aboutEl
+        pOptions.aboutEl,
+        klRootEl,
     );
 
     mainTabRow = new KL.TabRow({
@@ -1609,7 +1656,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 id: 'draw',
                 title: LANG('tool-brush'),
                 image: toolPaintImg,
-                onOpen: function() {
+                onOpen: function () {
                     if (currentBrushId === 'eraserBrush') {
                         klColorSlider.enable(false);
                     }
@@ -1619,7 +1666,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                     );
                     brushDiv.style.display = 'block';
                 },
-                onClose: function() {
+                onClose: function () {
                     brushDiv.style.display = 'none';
                 },
                 css: {
@@ -1631,10 +1678,10 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 title: LANG('tool-hand'),
                 image: toolHandImg,
                 isVisible: false,
-                onOpen: function() {
+                onOpen: function () {
                     handUi.setIsVisible(true);
                 },
-                onClose: function() {
+                onClose: function () {
                     handUi.setIsVisible(false);
                 },
                 css: {
@@ -1646,11 +1693,11 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 title: LANG('tool-paint-bucket'),
                 image: toolFillImg,
                 isVisible: false,
-                onOpen: function() {
+                onOpen: function () {
                     klColorSlider.enable(true);
                     fillUi.setIsVisible(true);
                 },
-                onClose: function() {
+                onClose: function () {
                     fillUi.setIsVisible(false);
                 },
                 css: {
@@ -1662,11 +1709,11 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 title: LANG('tool-text'),
                 image: toolTextImg,
                 isVisible: false,
-                onOpen: function() {
+                onOpen: function () {
                     klColorSlider.enable(true);
                     textUi.setIsVisible(true);
                 },
-                onClose: function() {
+                onClose: function () {
                     textUi.setIsVisible(false);
                 },
                 css: {
@@ -1678,11 +1725,11 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 title: LANG('tool-shape'),
                 image: toolShapeImg,
                 isVisible: false,
-                onOpen: function() {
+                onOpen: function () {
                     klColorSlider.enable(true);
                     shapeUi.setIsVisible(true);
                 },
-                onClose: function() {
+                onClose: function () {
                     shapeUi.setIsVisible(false);
                 },
                 css: {
@@ -1693,11 +1740,11 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                 id: 'layers',
                 title: LANG('tab-layers'),
                 image: tabLayersImg,
-                onOpen: function() {
+                onOpen: function () {
                     layerManager.update();
                     layerManager.style.display = 'block';
                 },
-                onClose: function() {
+                onClose: function () {
                     layerManager.style.display = 'none';
                 },
                 css: {
@@ -1706,29 +1753,31 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
             },
             {
                 id: 'edit',
-                label: LANG('tab-edit'),
-                onOpen: function() {
+                title: LANG('tab-edit'),
+                image: tabEditImg,
+                onOpen: function () {
                     filterTab.show();
                 },
-                onClose: function() {
+                onClose: function () {
                     filterTab.hide();
                 },
                 css: {
-                    padding: '0 7px',
+                    minWidth: '45px',
                 },
             },
             {
                 id: 'file',
-                label: LANG('tab-file'),
-                isVisible: !!fileTab,
-                onOpen: function() {
+                title: LANG('tab-file'),
+                image: tabFileImg,
+                isVisible: !pOptions.hideFile && !!fileTab,
+                onOpen: function () {
                     if (!fileTab) {
                         return;
                     }
                     fileTab.getElement().style.display = 'block';
                     fileTab.setIsVisible(true);
                 },
-                onClose: function() {
+                onClose: function () {
                     if (!fileTab) {
                         return;
                     }
@@ -1736,18 +1785,18 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
                     fileTab.setIsVisible(false);
                 },
                 css: {
-                    padding: '0 7px',
+                    minWidth: '45px',
                 },
             },
             {
                 id: 'settings',
                 title: LANG('tab-settings'),
                 image: tabSettingsImg,
-                onOpen: function() {
+                onOpen: function () {
                     settingsTab.getElement().style.display = 'block';
                     // settingsTab.setIsVisible(true);
                 },
-                onClose: function() {
+                onClose: function () {
                     settingsTab.getElement().style.display = 'none';
                     // settingsTab.setIsVisible(false);
                 },
@@ -1788,7 +1837,7 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
     }
 
     function copyToClipboard(showCrop?) {
-        KL.clipboardDialog(klRootEl, klCanvas.getCompleteCanvas(1), function (inputObj) {
+        KL.clipboardDialog(klRootEl, getBBox(), klCanvas.getCompleteCanvas(1), function (inputObj) {
             if (inputObj.left === 0 && inputObj.right === 0 && inputObj.top === 0 && inputObj.bottom === 0) {
                 return;
             }
@@ -1830,10 +1879,11 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         if (!pOptions.bottomBar) {
             return;
         }
+        const bbox = getBBox();
         const threshold = 617; //590
         const isVisible = (
-            threshold < window.innerHeight &&
-            toolspaceInner.scrollHeight + 50 < window.innerHeight
+            threshold < bbox.height &&
+            toolspaceInner.scrollHeight + 50 < bbox.height
         );
         bottomBarWrapper.style.display = isVisible ? '' : 'none';
     }
@@ -1867,6 +1917,32 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
 
     // --- interface ---
 
+    this.importImage = (image: { name?: string; content?: Blob; width?: number; height?: number; color?: string; }) => {
+        if (!image.content) {
+            resetCanvas({
+                width: image.width || klCanvas.getWidth(),
+                height: image.height || klCanvas.getHeight(),
+                color: image.color || { r: 255, g: 255, b: 255, a: 1 },
+                layerName: image.name
+            });
+        } else {
+            window.URL = window.URL || window.webkitURL;
+            let url = window.URL.createObjectURL(image.content);
+            let im = new Image();
+            im.src = url;
+            BB.loadImage(im, function () {
+                importFinishedLoading({
+                    type: 'image',
+                    width: im.width,
+                    height: im.height,
+                    canvas: im
+                }, image.name || '', 'image');
+            });
+        }
+    };
+
+    this.getBBox = getBBox;
+
     this.getEl = () => {
         return klRootEl;
     };
@@ -1897,11 +1973,11 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         statusOverlay.out(msg);
     };
 
-    this.getPNG = function(): Blob {
+    this.getPNG = function (): Blob {
         return base64ToBlob(klCanvas.getCompleteCanvas(1).toDataURL('image/png'));
     };
 
-    this.getPSD = async function() {
+    this.getPSD = async function () {
         return await klCanvasToPsdBlob(klCanvas);
     };
 
@@ -1930,18 +2006,20 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
 
     {
         BB.addEventListener(window, 'resize', () => {
-            this.resize(window.innerWidth, window.innerHeight);
+            const bbox = getBBox();
+            this.resize(bbox.width, bbox.height);
         });
         BB.addEventListener(window, 'orientationchange', () => {
-            this.resize(window.innerWidth, window.innerHeight);
+            const bbox = getBBox();
+            this.resize(bbox.width, bbox.height);
         });
 
         // iPad doesn't trigger 'resize' event when using text zoom, although it's resizing the window.
         // Workaround: place a div in the body that fills the window, and use a ResizeObserver
         const windowResizeWatcher = BB.el({
-            parent: document.body,
+            parent: container || document.body,
             css: {
-                position: 'fixed',
+                position: 'absolute',
                 left: '0',
                 top: '0',
                 right: '0',
@@ -1953,7 +2031,10 @@ export function KlApp(pProject: IKlProject | null, pOptions: IKlAppOptions) {
         });
         try {
             // Not all browsers support ResizeObserver. Not critical though.
-            const observer = new ResizeObserver(() => this.resize(window.innerWidth, window.innerHeight));
+            const observer = new ResizeObserver(() => {
+                const bbox = getBBox();
+                this.resize(bbox.width, bbox.height);
+            });
             observer.observe(windowResizeWatcher);
         } catch (e) {
             windowResizeWatcher.parentNode.removeChild(windowResizeWatcher);

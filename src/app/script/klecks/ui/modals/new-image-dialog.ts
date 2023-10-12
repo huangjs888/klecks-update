@@ -397,7 +397,7 @@ export function newImageDialog(p) {
     newImDiv.appendChild(previewWrapper);
 
     popup({
-        target: document.body,
+        target: p.klRootEl,
         message: `<b>${LANG('new-title')}</b>`,
         div: newImDiv,
         buttons: ['Ok', 'Cancel'],

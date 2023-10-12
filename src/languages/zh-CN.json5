@@ -1122,19 +1122,19 @@
     },
     submit: {
         original: 'Submit',
-        value: '提交'
+        value: '保存'
     },
     'submit-title': {
         original: 'Submit Drawing',
-        value: '提交作品'
+        value: '保存作品'
     },
     'submit-prompt': {
         original: 'Submit drawing?',
-        value: '确认提交？'
+        value: '确认保存？'
     },
     'submit-submitting': {
         original: 'Submitting',
-        value: '提交中'
+        value: '保存中'
     },
     'embed-init-loading': {
         original: 'Loading app',
@@ -1142,7 +1142,7 @@
     },
     'embed-init-waiting': {
         original: 'Waiting for image',
-        value: '图像上传中'
+        value: '加载画布中...'
     },
     unsaved: {
         original: 'Unsaved',

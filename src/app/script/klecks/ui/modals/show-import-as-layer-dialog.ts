@@ -1,17 +1,18 @@
-import {BB} from '../../../bb/bb';
-import {FreeTransformCanvas} from '../components/free-transform-canvas';
-import {popup} from './popup';
-import {KlCanvas} from '../../canvas/kl-canvas';
-import {IKlBasicLayer} from '../../kl.types';
-import {LANG} from '../../../language/language';
+import { BB } from '../../../bb/bb';
+import { FreeTransformCanvas } from '../components/free-transform-canvas';
+import { popup } from './popup';
+import { KlCanvas } from '../../canvas/kl-canvas';
+import { BBox, IKlBasicLayer } from '../../kl.types';
+import { LANG } from '../../../language/language';
 
 export function showImportAsLayerDialog(
     params: {
         target: HTMLElement;
+        bbox: BBox;
         klCanvas: KlCanvas;
         importImage: HTMLImageElement | HTMLCanvasElement;
         callback: (
-            p?: {x: number, y: number, width:number, height: number, angleDeg: number},
+            p?: { x: number, y: number, width: number, height: number, angleDeg: number },
             isPixelated?: boolean
         ) => void;
     }
@@ -33,7 +34,7 @@ export function showImportAsLayerDialog(
         });
         div.appendChild(noteEl);
     }
-    let isSmall = window.innerWidth < 550;
+    let isSmall = params.bbox.width < 550;
 
     let buttonRowEl = BB.el({
         css: {
@@ -46,7 +47,7 @@ export function showImportAsLayerDialog(
         css: {
             marginRight: '10px'
         },
-        onClick: function() {
+        onClick: function () {
             freeTransformCanvas.reset();
         }
     });
@@ -56,7 +57,7 @@ export function showImportAsLayerDialog(
         css: {
             marginRight: '10px'
         },
-        onClick: function() {
+        onClick: function () {
             freeTransformCanvas.setTransformFit();
         }
     });
@@ -66,7 +67,7 @@ export function showImportAsLayerDialog(
         css: {
             marginRight: '10px'
         },
-        onClick: function() {
+        onClick: function () {
             freeTransformCanvas.setTransformCenter();
         }
     });
@@ -114,7 +115,7 @@ export function showImportAsLayerDialog(
     }
 
     let keyListener = new BB.KeyListener({
-        onDown: function(keyStr) {
+        onDown: function (keyStr) {
             if (keyStr === 'left') {
                 move(-1, 0);
             }
@@ -139,7 +140,7 @@ export function showImportAsLayerDialog(
         },
         buttons: ["Ok", "Cancel"],
         clickOnEnter: 'Ok',
-        callback: function(buttonStr) {
+        callback: function (buttonStr) {
             keyListener.destroy();
             freeTransformCanvas.destroy();
             BB.destroyEl(originalSizeBtn);

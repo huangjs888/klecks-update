@@ -1,11 +1,11 @@
-import {BB} from '../../../bb/bb';
-import {renderText} from '../../image-operations/render-text';
-import {ColorOptions} from '../base-components/color-options';
-import {Select} from '../base-components/select';
-import {ImageRadioList} from '../base-components/image-radio-list';
-import {ImageToggle} from '../base-components/image-toggle';
-import {KlSlider} from '../base-components/kl-slider';
-import {popup} from './popup';
+import { BB } from '../../../bb/bb';
+import { renderText } from '../../image-operations/render-text';
+import { ColorOptions } from '../base-components/color-options';
+import { Select } from '../base-components/select';
+import { ImageRadioList } from '../base-components/image-radio-list';
+import { ImageToggle } from '../base-components/image-toggle';
+import { KlSlider } from '../base-components/kl-slider';
+import { popup } from './popup';
 // @ts-ignore
 import alignLeftImg from 'url:~/src/app/img/ui/align-left.svg';
 // @ts-ignore
@@ -20,9 +20,9 @@ import typoBoldImg from 'url:~/src/app/img/ui/typo-bold.svg';
 import toolZoomInImg from 'url:~/src/app/img/ui/tool-zoom-in.svg';
 // @ts-ignore
 import toolZoomOutImg from 'url:~/src/app/img/ui/tool-zoom-out.svg';
-import {IRGB} from '../../kl.types';
-import {KlCanvas} from '../../canvas/kl-canvas';
-import {LANG} from '../../../language/language';
+import { BBox, IRGB } from '../../kl.types';
+import { KlCanvas } from '../../canvas/kl-canvas';
+import { LANG } from '../../../language/language';
 
 /**
  * Text Tool dialog
@@ -58,13 +58,15 @@ export function textToolDialog(
         font: 'serif' | 'monospace' | 'sans-serif' | 'cursive' | 'fantasy'; // default sans-serif
         opacity: number; // 0 - 1; default 1
         onConfirm: (confirmP) => void;
+        klRootEl: HTMLElement;
+        bbox: BBox;
     }
 ) {
 
     let div = BB.el({});
 
-    let isSmallWidth = window.innerWidth < 550;
-    let isSmallHeight = window.innerHeight < 630;
+    let isSmallWidth = p.bbox.width < 550;
+    let isSmallHeight = p.bbox.height < 630;
 
     // --- preview ---
     // Text drawn on klCanvas-sized canvas: textCanvas
@@ -99,7 +101,7 @@ export function textToolDialog(
             colorScheme: 'only light',
             touchAction: 'none',
         },
-        onClick: function() {
+        onClick: function () {
             textInput.focus();
         }
     });
@@ -169,7 +171,7 @@ export function textToolDialog(
             targetCtx.imageSmoothingEnabled = false;
         } else {
             targetCtx.imageSmoothingEnabled = true;
-            targetCtx.imageSmoothingQuality  = scale >= 1 ? 'low' : 'medium';
+            targetCtx.imageSmoothingQuality = scale >= 1 ? 'low' : 'medium';
         }
 
         targetCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
@@ -215,7 +217,7 @@ export function textToolDialog(
                 layersCtx.imageSmoothingEnabled = false;
             } else {
                 layersCtx.imageSmoothingEnabled = true;
-                layersCtx.imageSmoothingQuality  = scale >= 1 ? 'low' : 'medium';
+                layersCtx.imageSmoothingQuality = scale >= 1 ? 'low' : 'medium';
             }
 
             // layers below
@@ -291,13 +293,13 @@ export function textToolDialog(
     let previewPointerListener = new BB.PointerListener({
         target: previewCanvas,
         pointers: 1,
-        onPointer: function(e) {
+        onPointer: function (e) {
             if (e.type === 'pointermove' && e.button) {
                 e.eventPreventDefault();
                 move(-e.dX, -e.dY);
             }
         },
-        onWheel: function(e) {
+        onWheel: function (e) {
             changeZoomFac(-e.deltaY);
         }
     });
@@ -348,10 +350,10 @@ export function textToolDialog(
     // --- row 1 ---
 
     // color
-    let selectedRgbaObj = {r: 0, g: 0, b: 0, a: 1};
+    let selectedRgbaObj = { r: 0, g: 0, b: 0, a: 1 };
     let colorOptionsArr = [
-        {r: 0, g: 0, b: 0, a: 1},
-        {r: 255, g: 255, b: 255, a: 1}
+        { r: 0, g: 0, b: 0, a: 1 },
+        { r: 255, g: 255, b: 255, a: 1 }
     ];
     colorOptionsArr.unshift({
         r: p.secondaryColor.r,
@@ -369,7 +371,7 @@ export function textToolDialog(
     let colorOptions = new ColorOptions({
         colorArr: colorOptionsArr,
         initialIndex: 0,
-        onChange: function(rgbaObj) {
+        onChange: function (rgbaObj) {
             p.color = rgbaObj;
             updatePreview();
         }
@@ -402,7 +404,7 @@ export function textToolDialog(
         content: `<img height="20" src="${toolZoomInImg}">`,
         title: LANG('zoom-in'),
         tagName: 'button',
-        onClick: function() {
+        onClick: function () {
             changeZoomFac(1);
         },
         css: {
@@ -414,7 +416,7 @@ export function textToolDialog(
         content: `<img height="20" src="${toolZoomOutImg}">`,
         title: LANG('zoom-out'),
         tagName: 'button',
-        onClick: function() {
+        onClick: function () {
             changeZoomFac(-1);
         },
         css: {
@@ -439,14 +441,14 @@ export function textToolDialog(
         css: {
             width: '60px'
         },
-        onChange: function() {
+        onChange: function () {
             sizeInput.value = '' + Math.max(1, Math.min(10000, parseInt(sizeInput.value)));
             updatePreview();
         }
     }) as HTMLInputElement;
     let sizePointerListener = new BB.PointerListener({
         target: sizeInput,
-        onWheel: function(e) {
+        onWheel: function (e) {
             sizeInput.value = '' + Math.max(1, Math.min(1000, parseInt(sizeInput.value) - e.deltaY));
             updatePreview();
         }
@@ -472,7 +474,7 @@ export function textToolDialog(
                 ['fantasy', 'Fantasy'],
             ],
             initValue: p.font,
-            onChange: function(val) {
+            onChange: function (val) {
                 updatePreview();
             },
         });
@@ -482,7 +484,7 @@ export function textToolDialog(
 
         fontPointerListener = new BB.PointerListener({
             target: fontSelect.getElement(),
-            onWheel: function(e) {
+            onWheel: function (e) {
                 fontSelect.setDeltaValue(e.deltaY);
             }
         });
@@ -511,7 +513,7 @@ export function textToolDialog(
             }
         ],
         initId: p.align,
-        onChange: function(id) {
+        onChange: function (id) {
             updatePreview();
         }
     });
@@ -521,7 +523,7 @@ export function textToolDialog(
         image: typoItalicImg,
         title: LANG('text-italic'),
         initValue: p.isItalic,
-        onChange: function(b) {
+        onChange: function (b) {
             updatePreview();
         }
     });
@@ -531,7 +533,7 @@ export function textToolDialog(
         image: typoBoldImg,
         title: LANG('text-bold'),
         initValue: p.isBold,
-        onChange: function(b) {
+        onChange: function (b) {
             updatePreview();
         }
     });
@@ -548,10 +550,10 @@ export function textToolDialog(
         initValue: p.opacity,
         resolution: 225,
         eventResMs: 1000 / 30,
-        onChange: function(v) {
+        onChange: function (v) {
             updatePreview();
         },
-        formatFunc: function(v) {
+        formatFunc: function (v) {
             return Math.round(v * 100);
         }
     });
@@ -574,18 +576,18 @@ export function textToolDialog(
             resize: 'vertical',
             marginTop: '10px'
         },
-        onChange: function() {
+        onChange: function () {
             updatePreview();
         }
     }) as HTMLTextAreaElement;
     textInput.addEventListener('input', updatePreview);
-    setTimeout(function() {
+    setTimeout(function () {
         textInput.focus();
         textInput.select();
     });
     let closefunc;
     let keyListener = new BB.KeyListener({
-        onDown: function(keyStr, e, comboStr) {
+        onDown: function (keyStr, e, comboStr) {
             if (BB.isInputFocused(true)) {
                 return;
             }
@@ -612,14 +614,14 @@ export function textToolDialog(
 
 
     popup({
-        target: document.body,
+        target: p.klRootEl,
         message: `<b>${LANG('text-title')}</b>`,
         div: div,
         buttons: ["Ok", "Cancel"],
         style: isSmallWidth ? {} : {
             width: '500px'
         },
-        callback: function(val) {
+        callback: function (val) {
             let result = {
                 x: p.x,
                 y: p.y,

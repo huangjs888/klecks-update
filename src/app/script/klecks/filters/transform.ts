@@ -22,7 +22,7 @@ export const transform = {
             return false;
         }
 
-        let isSmall = window.innerWidth < 550;
+        let isSmall = params.bbox.width < 550;
         let layers = canvas.getLayers();
         let selectedLayerIndex = canvas.getLayerIndex(context.canvas);
 

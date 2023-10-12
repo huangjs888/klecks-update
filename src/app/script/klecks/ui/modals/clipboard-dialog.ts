@@ -1,7 +1,7 @@
-import {BB} from '../../../bb/bb';
-import {popup} from './popup';
-import {CropCopy} from '../components/crop-copy';
-import {LANG} from '../../../language/language';
+import { BB } from '../../../bb/bb';
+import { popup } from './popup';
+import { CropCopy } from '../components/crop-copy';
+import { LANG } from '../../../language/language';
 
 /// <reference path="./types.d.ts" />
 
@@ -13,9 +13,9 @@ import {LANG} from '../../../language/language';
  * @param output - BB.Output
  * @param showCrop - boolean - show crop button
  */
-export function clipboardDialog(parent, fullCanvas, cropCallback, output, showCrop) {
+export function clipboardDialog(parent, bbox, fullCanvas, cropCallback, output, showCrop) {
     const div = document.createElement("div");
-    const isSmall = window.innerWidth < 550 || window.innerHeight < 550;
+    const isSmall = bbox.width < 550 || bbox.height < 550;
 
     let topWrapper = BB.el({
         content: LANG('crop-drag-to-crop'),
@@ -41,7 +41,7 @@ export function clipboardDialog(parent, fullCanvas, cropCallback, output, showCr
 
     function toClipboard() {
         const imgURL = cropCopy.getCroppedImage().toDataURL('image/png');
-        setTimeout(async function() {
+        setTimeout(async function () {
             try {
                 const data = await fetch(imgURL);
                 const blob = await data.blob();
@@ -50,7 +50,7 @@ export function clipboardDialog(parent, fullCanvas, cropCallback, output, showCr
                         [blob.type]: blob
                     } as any) // todo check is possible?
                 ]);
-                setTimeout(function() {
+                setTimeout(function () {
                     output.out(LANG('cropcopy-copied'), true);
                 }, 200);
             } catch (err) {
@@ -60,7 +60,7 @@ export function clipboardDialog(parent, fullCanvas, cropCallback, output, showCr
     }
 
     let keyListener = new BB.KeyListener({
-        onDown: function(keyStr, KeyEvent, comboStr) {
+        onDown: function (keyStr, KeyEvent, comboStr) {
             if (comboStr === 'ctrl+c') {
                 toClipboard();
                 closefunc();

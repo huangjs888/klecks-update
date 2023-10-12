@@ -1,10 +1,10 @@
-import {BB} from '../../bb/bb';
-import {KlCanvasPreview} from '../canvas-ui/canvas-preview';
+import { BB } from '../../bb/bb';
+import { KlCanvasPreview } from '../canvas-ui/canvas-preview';
 // @ts-ignore
 import checkmarkImg from 'url:~/src/app/img/ui/checkmark.svg';
-import {getSharedFx} from './shared-gl-fx';
-import {IFilterApply, IFilterGetDialogParam, IKlBasicLayer} from '../kl.types';
-import {LANG} from '../../language/language';
+import { getSharedFx } from './shared-gl-fx';
+import { IFilterApply, IFilterGetDialogParam, IKlBasicLayer } from '../kl.types';
+import { LANG } from '../../language/language';
 
 export const glPerspective = {
 
@@ -15,7 +15,7 @@ export const glPerspective = {
             return false;
         }
 
-        let isSmall = window.innerWidth < 550;
+        let isSmall = params.bbox.width < 550;
         let layers = canvas.getLayers();
         let selectedLayerIndex = canvas.getLayerIndex(context.canvas);
 
@@ -76,7 +76,7 @@ export const glPerspective = {
                         })
                     ).update();
                     klCanvasPreview.render();
-                } catch(e) {
+                } catch (e) {
                     (div as any).errorCallback(e);
                 }
             }
@@ -103,7 +103,7 @@ export const glPerspective = {
                 let pointerListener = new BB.PointerListener({
                     target: div,
                     maxPointers: 1,
-                    onPointer: function(event) {
+                    onPointer: function (event) {
                         event.eventPreventDefault();
                         if (event.button === 'left' && event.type === 'pointermove') {
                             (div as any).x += event.dX;

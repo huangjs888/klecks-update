@@ -643,7 +643,7 @@ export function klLayerManager(p_canvas: KlCanvas, p_func, p_rootDiv) {
                     opacity: '0'
                 });
                 if (largeThumbInDocument === false) {
-                    document.body.appendChild(largeThumbDiv);
+                    p_rootDiv.appendChild(largeThumbDiv);
                     largeThumbInDocument = true;
                 }
                 clearTimeout(largeThumbInTimeout);
@@ -664,7 +664,7 @@ export function klLayerManager(p_canvas: KlCanvas, p_func, p_rootDiv) {
                     if (!largeThumbInDocument) {
                         return;
                     }
-                    document.body.removeChild(largeThumbDiv);
+                    p_rootDiv.removeChild(largeThumbDiv);
                     largeThumbInDocument = false;
                 }, 300);
             });

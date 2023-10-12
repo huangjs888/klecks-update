@@ -1,10 +1,10 @@
-import {KL} from '../../kl';
-import {BB} from '../../../bb/bb';
-import {KlHistoryInterface} from '../../history/kl-history';
-import {LANG} from '../../../language/language';
-import {BrowserStorageUi} from './browser-storage-ui';
-import {ProjectStore} from '../../storage/project-store';
-import {IKlProject} from '../../kl.types';
+import { KL } from '../../kl';
+import { BB } from '../../../bb/bb';
+import { KlHistoryInterface } from '../../history/kl-history';
+import { LANG } from '../../../language/language';
+import { BrowserStorageUi } from './browser-storage-ui';
+import { ProjectStore } from '../../storage/project-store';
+import { IKlProject, BBox } from '../../kl.types';
 
 
 const reminderTimelimitMs = 1000 * 60 * 20; // 20 minutes
@@ -22,8 +22,8 @@ export class SaveReminder {
     private unsavedInterval;
     private closeFunc: () => void;
 
-    showPopup (): void {
-        if (!this.projectStore || !this.getProject) {
+    showPopup(): void {
+        if (!this.projectStore || !this.getProject || !this.getProject()) {
             throw new Error('projectStore and getProject need to be set');
         }
 
@@ -85,7 +85,6 @@ export class SaveReminder {
             this.projectStore,
             this.getProject,
             this,
-            document.body as any,
             {
                 hideClearButton: true,
             }
@@ -94,7 +93,7 @@ export class SaveReminder {
 
 
         KL.popup({
-            target: document.body,
+            target: this.getEl(),
             message: `<b>${LANG('save-reminder-title')}</b>`,
             div: contentEl,
             ignoreBackground: true,
@@ -113,18 +112,20 @@ export class SaveReminder {
         }, 40);
     }
 
-    constructor (
+    constructor(
         private history: KlHistoryInterface,
         private showReminder: boolean,
         private changeTitle: boolean,
         private onSaveAsPsd: () => void,
         private isDrawing: () => boolean,
         private projectStore: ProjectStore | null, // needed if showReminder
-        private getProject: (() => IKlProject) | null, // needed if showReminder
+        private getProject: (() => IKlProject | null) | null, // needed if showReminder
+        public getEl: () => HTMLElement,
+        public getBBox: () => BBox,
         private title: string = 'Klecks',
     ) { }
 
-    init (): void {
+    init(): void {
         if (this.lastSavedActionNumber !== null) { // already initialized
             return;
         }
@@ -190,7 +191,7 @@ export class SaveReminder {
         }
     }
 
-    reset (): void {
+    reset(): void {
         if (this.lastSavedActionNumber === null) { // not initialized
             return;
         }

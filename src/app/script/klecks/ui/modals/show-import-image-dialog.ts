@@ -1,8 +1,8 @@
-import {BB} from '../../../bb/bb';
-import {CropCopy} from '../components/crop-copy';
-import {Checkbox} from '../base-components/checkbox';
-import {popup} from './popup';
-import {LANG} from '../../../language/language';
+import { BB } from '../../../bb/bb';
+import { CropCopy } from '../components/crop-copy';
+import { Checkbox } from '../base-components/checkbox';
+import { popup } from './popup';
+import { LANG } from '../../../language/language';
 
 /**
  *
@@ -32,7 +32,7 @@ import {LANG} from '../../../language/language';
 export function showImportImageDialog(p) {
     const div = BB.el({});
 
-    const isSmall = window.innerWidth < 550 || window.innerHeight < 550;
+    const isSmall = p.bbox.width < 550 || p.bbox.height < 550;
     const style = isSmall ? {} : { width: '500px' };
     let resolutionEl;
     const cropCopy = new CropCopy({
@@ -40,7 +40,7 @@ export function showImportImageDialog(p) {
         height: isSmall ? 300 : 400,
         canvas: p.image.canvas,
         isNotCopy: true,
-        onChange: function(width, height) {
+        onChange: function (width, height) {
             if (!resolutionEl) {
                 return;
             }
@@ -112,7 +112,7 @@ export function showImportImageDialog(p) {
             flattenCheckbox = new Checkbox({
                 init: doFlatten,
                 label: LANG('import-flatten'),
-                callback: function(b) {
+                callback: function (b) {
                     doFlatten = b;
                 }
             });
@@ -126,7 +126,7 @@ export function showImportImageDialog(p) {
                 noteEl.appendChild(BB.el({
                     tagName: 'a',
                     content: 'Details',
-                    onClick: function() {
+                    onClick: function () {
                         showWarnings(p.image.warningArr);
                     }
                 }));

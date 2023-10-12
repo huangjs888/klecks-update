@@ -10,6 +10,7 @@ type TUiState = 'left' | 'right';
  */
 export class StatusOverlay {
 
+    private container: HTMLDivElement;
     private el: HTMLDivElement;
     private innerEl: HTMLDivElement;
     private angleIm: HTMLImageElement;
@@ -35,7 +36,7 @@ export class StatusOverlay {
 
     private init() {
         this.el = BB.el({
-            className: "top-overlay g-root",
+            className: "top-overlay",
             onClick: BB.handleClick,
         }) as HTMLDivElement;
 
@@ -66,14 +67,15 @@ export class StatusOverlay {
         this.innerEl.appendChild(this.innerInnerEl);
         this.innerEl.appendChild(this.angleIm);
         this.el.appendChild(this.innerEl);
-        document.body.appendChild(this.el);
+        this.container.appendChild(this.el);
         this.el.style.display = "none";
     }
 
 
     // --- public ---
 
-    constructor () {
+    constructor (el: HTMLDivElement) {
+        this.container = el;
         this.init();
     }
 
